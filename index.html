@@ -606,10 +606,12 @@ self.addEventListener('fetch',e=>e.respondWith(caches.match(e.request).then(r=>r
   `;
   const blob=new Blob([sw],{type:'application/javascript'});
   const url=URL.createObjectURL(blob);
-  navigator.serviceWorker.register(url).catch(()=>{});
+  if('serviceWorker' in navigator){
+      navigator.serviceWorker.register('./sw.js').catch(()=>{});
+    }
 }
 
-// ─── INIT ────────────────────────────────────────────────────────
+// ─── INInavigator.serviceWorker.register(url).catch(()=>{});────────────────────────────────────────────────────────
 renderToday();
 </script>
 </body>
