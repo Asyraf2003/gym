@@ -1,0 +1,616 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1"/>
+<meta name="theme-color" content="#0f0f0f"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+<title>GymLog</title>
+<style>
+:root{
+  --bg:#0f0f0f;--bg2:#1a1a1a;--bg3:#252525;--card:#1e1e1e;
+  --accent:#e8ff47;--accent2:#c8e000;
+  --text:#f0f0f0;--text2:#a0a0a0;--text3:#666;
+  --border:#2e2e2e;--red:#ff4d4d;--green:#4dff91;--blue:#4db8ff;
+  --radius:14px;--font:'Segoe UI',system-ui,sans-serif;
+}
+.light{
+  --bg:#f5f5f0;--bg2:#ebebeb;--bg3:#e0e0da;--card:#ffffff;
+  --text:#111111;--text2:#555555;--text3:#999;
+  --border:#d0d0c8;--accent:#b8a800;--accent2:#9a8c00;
+  --today-text:#ffffff;
+}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+body{background:var(--bg);color:var(--text);font-family:var(--font);min-height:100vh;overflow-x:hidden;}
+
+/* TOP BAR */
+.topbar{display:flex;align-items:center;justify-content:space-between;padding:14px 16px 10px;position:sticky;top:0;background:var(--bg);z-index:100;border-bottom:1px solid var(--border);}
+.topbar h1{font-size:20px;font-weight:800;letter-spacing:-0.5px;}
+.topbar h1 span{color:var(--accent);}
+.topbar-right{display:flex;gap:8px;align-items:center;}
+.icon-btn{background:var(--bg3);border:none;color:var(--text);width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:18px;}
+
+/* NAV */
+.nav{display:flex;background:var(--bg2);border-top:1px solid var(--border);position:fixed;bottom:0;left:0;right:0;z-index:100;}
+.nav-btn{flex:1;padding:10px 4px 12px;background:none;border:none;color:var(--text2);display:flex;flex-direction:column;align-items:center;gap:3px;font-size:10px;cursor:pointer;transition:color .2s;}
+.nav-btn.active{color:var(--accent);}
+.nav-btn svg{width:22px;height:22px;}
+
+/* PAGES */
+.page{display:none;padding:12px 16px 80px;}
+.page.active{display:block;}
+
+/* CARDS */
+.card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:14px;margin-bottom:10px;}
+.card-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;}
+.card-title{font-size:15px;font-weight:700;}
+.badge{font-size:11px;font-weight:700;padding:3px 8px;border-radius:20px;background:var(--bg3);color:var(--text2);}
+.badge.push{background:#3a1a00;color:#ff9944;}
+.badge.pull{background:#001a3a;color:#44aaff;}
+.badge.legs{background:#1a003a;color:#aa44ff;}
+.badge.off{background:var(--bg3);color:var(--text3);}
+
+/* DAY STRIP */
+.day-strip{display:flex;gap:6px;overflow-x:auto;padding-bottom:6px;margin-bottom:14px;scrollbar-width:none;}
+.day-strip::-webkit-scrollbar{display:none;}
+.day-chip{flex:0 0 auto;display:flex;flex-direction:column;align-items:center;padding:8px 10px;border-radius:10px;background:var(--bg3);border:2px solid transparent;cursor:pointer;transition:all .2s;min-width:44px;}
+.day-chip.active{border-color:var(--accent);background:var(--bg2);}
+.day-chip.today{background:var(--accent);color:#000;}
+.light .day-chip.today{color:#fff;}
+.light .day-chip.active{color:var(--text);}
+.day-chip .d-name{font-size:10px;font-weight:700;text-transform:uppercase;}
+.day-chip .d-num{font-size:16px;font-weight:800;}
+
+/* EXERCISE ROW */
+.ex-row{border-bottom:1px solid var(--border);padding:10px 0;}
+.ex-row:last-child{border-bottom:none;}
+.ex-name{font-size:14px;font-weight:600;margin-bottom:4px;}
+.ex-target{font-size:11px;color:var(--text2);margin-bottom:8px;}
+.ex-sets{display:flex;flex-direction:column;gap:5px;}
+.set-row{display:flex;align-items:center;gap:6px;}
+.set-num{width:22px;font-size:11px;color:var(--text3);text-align:center;}
+.set-input{flex:1;background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:7px 8px;color:var(--text);font-size:13px;text-align:center;min-width:0;}
+.set-input:focus{outline:none;border-color:var(--accent);}
+.set-input::placeholder{color:var(--text3);}
+.set-label{font-size:10px;color:var(--text2);width:20px;text-align:center;}
+.set-done{width:28px;height:28px;border-radius:8px;border:2px solid var(--border);background:none;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:14px;transition:all .2s;flex:0 0 auto;}
+.set-done.checked{background:var(--green);border-color:var(--green);}
+.add-set-btn{width:100%;margin-top:6px;padding:6px;background:none;border:1px dashed var(--border);border-radius:8px;color:var(--text2);font-size:12px;cursor:pointer;}
+.add-set-btn:active{background:var(--bg3);}
+
+/* MUSCLE FILTER */
+.filter-row{display:flex;gap:6px;overflow-x:auto;padding-bottom:4px;margin-bottom:12px;scrollbar-width:none;}
+.filter-row::-webkit-scrollbar{display:none;}
+.filter-chip{flex:0 0 auto;padding:6px 12px;border-radius:20px;background:var(--bg3);border:1.5px solid transparent;font-size:12px;font-weight:600;cursor:pointer;color:var(--text2);transition:all .2s;}
+.filter-chip.active{border-color:var(--accent);color:var(--accent);}
+
+/* PROGRESS */
+.progress-card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:14px;margin-bottom:10px;}
+.prog-ex-name{font-size:14px;font-weight:700;margin-bottom:10px;}
+.prog-history{display:flex;flex-direction:column;gap:5px;}
+.prog-row{display:flex;justify-content:space-between;align-items:center;font-size:12px;padding:6px 10px;background:var(--bg3);border-radius:8px;}
+.prog-row .date{color:var(--text2);}
+.prog-row .val{font-weight:700;}
+.prog-row .delta{font-size:11px;padding:2px 6px;border-radius:6px;}
+.delta.up{background:#0a2a0a;color:var(--green);}
+.delta.down{background:#2a0a0a;color:var(--red);}
+.delta.same{background:var(--bg2);color:var(--text3);}
+
+/* CHART */
+.mini-chart{height:70px;width:100%;display:flex;align-items:flex-end;gap:3px;margin:10px 0 4px;}
+.bar-wrap{flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;}
+.bar{width:100%;border-radius:4px 4px 0 0;background:var(--accent);min-height:4px;transition:height .3s;}
+.bar-lbl{font-size:8px;color:var(--text3);}
+
+/* REPORT */
+.stat-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px;}
+.stat-box{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:12px;text-align:center;}
+.stat-val{font-size:22px;font-weight:800;color:var(--accent);}
+.stat-lbl{font-size:11px;color:var(--text2);margin-top:2px;}
+.section-title{font-size:13px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:.5px;margin:14px 0 8px;}
+
+/* EMPTY STATE */
+.empty{text-align:center;padding:40px 20px;color:var(--text3);}
+.empty .icon{font-size:48px;margin-bottom:10px;}
+.empty p{font-size:14px;}
+
+/* TOAST */
+.toast{position:fixed;bottom:90px;left:50%;transform:translateX(-50%) translateY(10px);background:var(--accent);color:#000;padding:10px 20px;border-radius:20px;font-size:13px;font-weight:700;opacity:0;transition:all .3s;z-index:999;pointer-events:none;}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+
+/* BTN */
+.btn{padding:12px 20px;border-radius:var(--radius);border:none;font-size:14px;font-weight:700;cursor:pointer;width:100%;transition:opacity .2s;}
+.btn:active{opacity:.8;}
+.btn-accent{background:var(--accent);color:#000;}
+.btn-ghost{background:var(--bg3);color:var(--text);}
+
+/* SELECT */
+select{background:var(--bg3);border:1px solid var(--border);border-radius:8px;color:var(--text);padding:8px 12px;font-size:13px;width:100%;margin-bottom:8px;}
+select:focus{outline:none;border-color:var(--accent);}
+
+.week-label{font-size:12px;color:var(--text2);text-align:center;margin-bottom:12px;}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <h1>Gym<span style="color:var(--accent)">Log</span></h1>
+  <div class="topbar-right">
+    <button class="icon-btn" id="themeBtn" title="Toggle theme">🌙</button>
+  </div>
+</div>
+
+<!-- PAGES -->
+<div class="page active" id="page-today">
+  <div id="day-strip-wrap"></div>
+  <div id="workout-content"></div>
+</div>
+
+<div class="page" id="page-progress">
+  <div class="filter-row" id="muscle-filter"></div>
+  <div id="progress-content"></div>
+</div>
+
+<div class="page" id="page-report">
+  <div id="report-content"></div>
+</div>
+
+<!-- NAV -->
+<nav class="nav">
+  <button class="nav-btn active" data-page="today" onclick="switchPage('today',this)">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+    Hari Ini
+  </button>
+  <button class="nav-btn" data-page="progress" onclick="switchPage('progress',this)">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+    Progres
+  </button>
+  <button class="nav-btn" data-page="report" onclick="switchPage('report',this)">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+    Laporan
+  </button>
+</nav>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ─── DATA ───────────────────────────────────────────────────────
+const PROGRAM = {
+  0: { name:'Senin', type:'push', label:'Push A', badge:'push',
+    focus:'Upper Chest & Delts',
+    exercises:[
+      {id:'incline-bp', name:'Incline Bench Press', muscle:'chest', sets:4, rep:'6-8'},
+      {id:'flat-bp', name:'Flat Bench Press', muscle:'chest', sets:3, rep:'8-10'},
+      {id:'db-shoulder-press', name:'Seated DB Shoulder Press', muscle:'delts', sets:3, rep:'6-10'},
+      {id:'cable-fly-lh', name:'Low-to-High Cable Fly', muscle:'chest', sets:3, rep:'12-15'},
+      {id:'lateral-raise-a', name:'Cable/DB Lateral Raise', muscle:'delts', sets:4, rep:'12-20'},
+      {id:'triceps-pressdown', name:'Triceps Pressdown', muscle:'triceps', sets:3, rep:'10-15'},
+      {id:'overhead-tri', name:'Overhead Triceps Extension', muscle:'triceps', sets:2, rep:'12-15'},
+    ]},
+  1: { name:'Selasa', type:'pull', label:'Pull A', badge:'pull',
+    focus:'Lebar Punggung',
+    exercises:[
+      {id:'pullup', name:'Pull-up / Lat Pulldown', muscle:'back', sets:4, rep:'6-10'},
+      {id:'cs-row', name:'Chest-Supported Row', muscle:'back', sets:3, rep:'8-12'},
+      {id:'cable-pulldown', name:'One-Arm Cable Pulldown', muscle:'back', sets:3, rep:'10-15'},
+      {id:'rear-delt-fly', name:'Rear-Delt Fly', muscle:'delts', sets:4, rep:'12-20'},
+      {id:'bb-curl', name:'Barbell / Incline DB Curl', muscle:'biceps', sets:3, rep:'8-12'},
+      {id:'hammer-curl', name:'Hammer Curl', muscle:'biceps', sets:2, rep:'10-15'},
+      {id:'knee-raise', name:'Hanging Knee Raise', muscle:'core', sets:3, rep:'10-15'},
+    ]},
+  2: { name:'Rabu', type:'legs', label:'Legs A', badge:'legs',
+    focus:'Hypertrophy Efisien',
+    exercises:[
+      {id:'squat', name:'Back Squat / Hack Squat', muscle:'quads', sets:4, rep:'6-10'},
+      {id:'rdl', name:'Romanian Deadlift', muscle:'hamstrings', sets:3, rep:'6-10'},
+      {id:'leg-press', name:'Leg Press', muscle:'quads', sets:3, rep:'10-20'},
+      {id:'leg-curl', name:'Leg Curl', muscle:'hamstrings', sets:3, rep:'10-15'},
+      {id:'calf-raise-a', name:'Standing Calf Raise', muscle:'calves', sets:4, rep:'10-15'},
+      {id:'cable-crunch', name:'Cable Crunch', muscle:'core', sets:3, rep:'12-15'},
+    ]},
+  3: { name:'Kamis', type:'push', label:'Push B', badge:'push',
+    focus:'Chest & Bahu Lebar',
+    exercises:[
+      {id:'incline-db-press', name:'Incline Dumbbell Press', muscle:'chest', sets:3, rep:'8-12'},
+      {id:'machine-chest', name:'Machine Chest Press', muscle:'chest', sets:3, rep:'10-12'},
+      {id:'dip', name:'Dip / Decline Push-up Weighted', muscle:'chest', sets:2, rep:'8-12'},
+      {id:'lateral-raise-b', name:'Lateral Raise (Variant)', muscle:'delts', sets:5, rep:'12-20'},
+      {id:'rear-delt-row', name:'Rear-Delt Row', muscle:'delts', sets:3, rep:'12-15'},
+      {id:'skull-crusher', name:'Skull Crusher / EZ Extension', muscle:'triceps', sets:3, rep:'8-12'},
+    ]},
+  4: { name:'Jumat', type:'pull', label:'Pull B', badge:'pull',
+    focus:'Ketebalan Punggung & Arms',
+    exercises:[
+      {id:'bb-row', name:'Barbell Row / Seated Cable Row', muscle:'back', sets:4, rep:'6-10'},
+      {id:'neutral-pulldown', name:'Neutral Grip Pulldown', muscle:'back', sets:3, rep:'8-12'},
+      {id:'high-row', name:'High Row / Upper Back Row', muscle:'back', sets:3, rep:'10-15'},
+      {id:'face-pull', name:'Face Pull', muscle:'delts', sets:3, rep:'12-20'},
+      {id:'preacher-curl', name:'Preacher Curl', muscle:'biceps', sets:3, rep:'10-12'},
+      {id:'cable-curl', name:'Cable Curl', muscle:'biceps', sets:2, rep:'12-15'},
+      {id:'ab-wheel', name:'Ab Wheel / Reverse Crunch', muscle:'core', sets:3, rep:'8-15'},
+    ]},
+  5: { name:'Sabtu', type:'legs', label:'Legs B', badge:'legs',
+    focus:'Weak-Point Aesthetic',
+    exercises:[
+      {id:'deadlift', name:'Sumo / Conventional Deadlift', muscle:'hamstrings', sets:3, rep:'5-8'},
+      {id:'bss', name:'Bulgarian Split Squat', muscle:'quads', sets:3, rep:'8-12'},
+      {id:'hip-thrust', name:'Hip Thrust / Good Morning', muscle:'glutes', sets:2, rep:'8-12'},
+      {id:'leg-ext', name:'Leg Extension', muscle:'quads', sets:3, rep:'12-15'},
+      {id:'seated-calf', name:'Seated Calf Raise', muscle:'calves', sets:4, rep:'12-20'},
+      {id:'lat-burnout', name:'Lateral Raise Burnout', muscle:'delts', sets:2, rep:'AMRAP'},
+      {id:'stomach-vacuum', name:'Stomach Vacuum', muscle:'core', sets:5, rep:'10-15 napas'},
+    ]},
+  6: { name:'Minggu', type:'off', label:'REST', badge:'off', focus:'Istirahat & Recovery', exercises:[] }
+};
+
+const MUSCLES = ['Semua','chest','back','delts','biceps','triceps','quads','hamstrings','calves','glutes','core'];
+
+// ─── STATE ───────────────────────────────────────────────────────
+let darkMode = true;
+let selectedDay = new Date().getDay() === 0 ? 6 : new Date().getDay() - 1;
+let selectedMuscle = 'Semua';
+let logs = JSON.parse(localStorage.getItem('gymlogs') || '{}');
+// logs[dateKey][exId] = [{kg, reps, done}]
+
+function todayKey(){ return dateKey(new Date()); }
+function dateKey(d){ return d.toISOString().slice(0,10); }
+function getWeekStart(d){ let dd=new Date(d); let day=dd.getDay(); let diff=dd.getDate()-(day===0?6:day-1); dd.setDate(diff); return dd; }
+
+function getLogs(date, exId){
+  let k = dateKey(date);
+  if(!logs[k]) logs[k]={};
+  if(!logs[k][exId]) logs[k][exId]=[];
+  return logs[k][exId];
+}
+function saveLogs(){ localStorage.setItem('gymlogs', JSON.stringify(logs)); }
+
+// ─── THEME ───────────────────────────────────────────────────────
+document.getElementById('themeBtn').onclick = function(){
+  darkMode = !darkMode;
+  document.body.classList.toggle('light', !darkMode);
+  this.textContent = darkMode ? '🌙' : '☀️';
+};
+
+// ─── NAVIGATION ─────────────────────────────────────────────────
+function switchPage(name, btn){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById('page-'+name).classList.add('active');
+  btn.classList.add('active');
+  if(name==='today') renderToday();
+  if(name==='progress') renderProgress();
+  if(name==='report') renderReport();
+}
+
+// ─── TODAY PAGE ─────────────────────────────────────────────────
+function renderDayStrip(){
+  const today = new Date();
+  const todayIdx = today.getDay()===0?6:today.getDay()-1;
+  const ws = getWeekStart(today);
+  let html = `<div class="day-strip">`;
+  for(let i=0;i<7;i++){
+    let d = new Date(ws); d.setDate(ws.getDate()+i);
+    let isToday = i===todayIdx;
+    let isSelected = i===selectedDay;
+    let dNum = d.getDate();
+    let dName = ['Sen','Sel','Rab','Kam','Jum','Sab','Min'][i];
+    html += `<div class="day-chip ${isToday?'today':''} ${isSelected&&!isToday?'active':''}" onclick="selectDay(${i})">
+      <span class="d-name">${dName}</span>
+      <span class="d-num">${dNum}</span>
+    </div>`;
+  }
+  html += `</div>`;
+  // week label
+  let we = new Date(ws); we.setDate(ws.getDate()+5);
+  html += `<div class="week-label">Minggu ${ws.getDate()}/${ws.getMonth()+1} – ${we.getDate()}/${we.getMonth()+1}/${we.getFullYear()}</div>`;
+  document.getElementById('day-strip-wrap').innerHTML = html;
+}
+
+function selectDay(idx){
+  selectedDay = idx;
+  renderToday();
+}
+
+function renderToday(){
+  renderDayStrip();
+  const day = PROGRAM[selectedDay];
+  const today = new Date();
+  const ws = getWeekStart(today);
+  let d = new Date(ws); d.setDate(ws.getDate()+selectedDay);
+  let dk = dateKey(d);
+
+  let html = `<div class="card">
+    <div class="card-header">
+      <div>
+        <div class="card-title">${day.label} — ${day.name}</div>
+        <div style="font-size:12px;color:var(--text2);margin-top:2px;">${day.focus}</div>
+      </div>
+      <span class="badge ${day.badge}">${day.type.toUpperCase()}</span>
+    </div>`;
+
+  if(day.type==='off'){
+    html += `<div class="empty"><div class="icon">😴</div><p>Hari istirahat. Santai & recovery!</p></div></div>`;
+    document.getElementById('workout-content').innerHTML = html;
+    return;
+  }
+
+  html += `</div>`;
+
+  day.exercises.forEach(ex => {
+    let exLogs = getLogs(d, ex.id);
+    // ensure default sets
+    while(exLogs.length < ex.sets){ exLogs.push({kg:'', reps:'', done:false}); }
+    saveLogs();
+
+    html += `<div class="card">
+      <div class="ex-name">${ex.name}</div>
+      <div class="ex-target">Target: ${ex.sets} set × ${ex.rep} rep · ${ex.muscle}</div>
+      <div class="ex-sets" id="sets-${ex.id}">`;
+
+    exLogs.forEach((s, si) => {
+      html += buildSetRow(ex.id, si, s, dk);
+    });
+
+    html += `</div>
+      <button class="add-set-btn" onclick="addSet('${ex.id}','${dk}')">+ Tambah Set</button>
+    </div>`;
+  });
+
+  document.getElementById('workout-content').innerHTML = html;
+}
+
+function buildSetRow(exId, si, s, dk){
+  return `<div class="set-row" id="setrow-${exId}-${si}">
+    <span class="set-num">${si+1}</span>
+    <input class="set-input" type="number" inputmode="decimal" placeholder="kg" value="${s.kg||''}" 
+      onchange="updateSet('${exId}',${si},'kg',this.value,'${dk}')">
+    <span class="set-label">kg</span>
+    <input class="set-input" type="number" inputmode="numeric" placeholder="rep" value="${s.reps||''}" 
+      onchange="updateSet('${exId}',${si},'reps',this.value,'${dk}')">
+    <span class="set-label">rep</span>
+    <button class="set-done ${s.done?'checked':''}" onclick="toggleDone('${exId}',${si},'${dk}')">
+      ${s.done?'✓':''}
+    </button>
+  </div>`;
+}
+
+function updateSet(exId, si, field, val, dk){
+  if(!logs[dk]) logs[dk]={};
+  if(!logs[dk][exId]) logs[dk][exId]=[];
+  if(!logs[dk][exId][si]) logs[dk][exId][si]={kg:'',reps:'',done:false};
+  logs[dk][exId][si][field] = val;
+  saveLogs();
+}
+
+function toggleDone(exId, si, dk){
+  if(!logs[dk]||!logs[dk][exId]||!logs[dk][exId][si]) return;
+  logs[dk][exId][si].done = !logs[dk][exId][si].done;
+  saveLogs();
+  let btn = document.querySelector(`#setrow-${exId}-${si} .set-done`);
+  if(btn){
+    let done = logs[dk][exId][si].done;
+    btn.className = 'set-done'+(done?' checked':'');
+    btn.textContent = done?'✓':'';
+    if(done) showToast('Set selesai! 💪');
+  }
+}
+
+function addSet(exId, dk){
+  if(!logs[dk]) logs[dk]={};
+  if(!logs[dk][exId]) logs[dk][exId]=[];
+  logs[dk][exId].push({kg:'',reps:'',done:false});
+  saveLogs();
+  let si = logs[dk][exId].length-1;
+  let container = document.getElementById('sets-'+exId);
+  if(container){
+    container.insertAdjacentHTML('beforeend', buildSetRow(exId, si, {kg:'',reps:'',done:false}, dk));
+  }
+}
+
+// ─── PROGRESS PAGE ─────────────────────────────────────────────
+function renderProgress(){
+  // muscle filter
+  let mf = ``;
+  MUSCLES.forEach(m => {
+    mf += `<div class="filter-chip ${selectedMuscle===m?'active':''}" onclick="setMuscle('${m}')">${m}</div>`;
+  });
+  document.getElementById('muscle-filter').innerHTML = mf;
+
+  // gather all exercises matching filter
+  let allEx = [];
+  Object.values(PROGRAM).forEach(day => {
+    day.exercises.forEach(ex => {
+      if(selectedMuscle==='Semua' || ex.muscle===selectedMuscle){
+        if(!allEx.find(e=>e.id===ex.id)) allEx.push(ex);
+      }
+    });
+  });
+
+  if(allEx.length===0){
+    document.getElementById('progress-content').innerHTML=`<div class="empty"><div class="icon">🔍</div><p>Tidak ada exercise untuk otot ini.</p></div>`;
+    return;
+  }
+
+  let html = '';
+  allEx.forEach(ex => {
+    // get all log entries for this exercise across dates
+    let history = [];
+    Object.keys(logs).sort().forEach(dk => {
+      if(logs[dk][ex.id]){
+        let sets = logs[dk][ex.id].filter(s=>s.kg&&s.reps);
+        if(sets.length>0){
+          let maxKg = Math.max(...sets.map(s=>parseFloat(s.kg)||0));
+          let totalVol = sets.reduce((a,s)=>(parseFloat(s.kg)||0)*(parseFloat(s.reps)||0)+a,0);
+          history.push({date:dk, maxKg, totalVol, sets:sets.length});
+        }
+      }
+    });
+
+    if(history.length===0) return;
+
+    html += `<div class="progress-card">
+      <div class="prog-ex-name">${ex.name} <span style="font-size:11px;color:var(--text2);font-weight:400">(${ex.muscle})</span></div>`;
+
+    // mini bar chart (last 6 sessions)
+    let recent = history.slice(-6);
+    let maxV = Math.max(...recent.map(h=>h.maxKg), 1);
+    html += `<div class="mini-chart">`;
+    recent.forEach(h => {
+      let pct = Math.round((h.maxKg/maxV)*100);
+      html += `<div class="bar-wrap">
+        <div class="bar" style="height:${pct}%;"></div>
+        <div class="bar-lbl">${h.date.slice(5)}</div>
+      </div>`;
+    });
+    html += `</div><div style="font-size:10px;color:var(--text3);margin-bottom:8px;">Beban terberat (kg)</div>`;
+
+    // last 3 sessions detail
+    html += `<div class="prog-history">`;
+    history.slice(-3).reverse().forEach((h,i) => {
+      let prev = history.slice(-3).reverse()[i+1];
+      let delta = prev ? h.maxKg - prev.maxKg : 0;
+      let cls = delta>0?'up':delta<0?'down':'same';
+      let sym = delta>0?`+${delta.toFixed(1)}`:(delta<0?delta.toFixed(1):'=');
+      html += `<div class="prog-row">
+        <span class="date">${h.date}</span>
+        <span class="val">${h.maxKg} kg</span>
+        <span class="delta ${cls}">${i<history.slice(-3).length-1?sym:'—'}</span>
+      </div>`;
+    });
+    html += `</div></div>`;
+  });
+
+  if(!html) html=`<div class="empty"><div class="icon">📊</div><p>Belum ada data. Isi log dulu ya!</p></div>`;
+  document.getElementById('progress-content').innerHTML = html;
+}
+
+function setMuscle(m){ selectedMuscle=m; renderProgress(); }
+
+// ─── REPORT PAGE ────────────────────────────────────────────────
+function renderReport(){
+  // compute stats for current week
+  const today = new Date();
+  const ws = getWeekStart(today);
+
+  let totalSessions=0, totalSets=0, totalVol=0, prCount=0;
+  let sessionDays=[];
+
+  for(let i=0;i<6;i++){
+    let d = new Date(ws); d.setDate(ws.getDate()+i);
+    let dk = dateKey(d);
+    if(logs[dk] && Object.keys(logs[dk]).length>0){
+      let hasData = false;
+      Object.keys(logs[dk]).forEach(exId => {
+        let sets = logs[dk][exId].filter(s=>s.kg&&s.reps);
+        if(sets.length>0){
+          hasData=true;
+          totalSets+=sets.length;
+          sets.forEach(s=>{ totalVol+=(parseFloat(s.kg)||0)*(parseFloat(s.reps)||0); });
+        }
+      });
+      if(hasData){ totalSessions++; sessionDays.push(PROGRAM[i]?.name); }
+    }
+  }
+
+  // PR detection (all time max per exercise)
+  let prs = [];
+  Object.values(PROGRAM).forEach(day=>{
+    day.exercises.forEach(ex=>{
+      let allMaxes = Object.keys(logs).sort().map(dk=>{
+        let sets = (logs[dk][ex.id]||[]).filter(s=>s.kg&&s.reps);
+        return sets.length>0?Math.max(...sets.map(s=>parseFloat(s.kg)||0)):0;
+      }).filter(x=>x>0);
+      if(allMaxes.length>=2){
+        let last=allMaxes[allMaxes.length-1], prev=allMaxes[allMaxes.length-2];
+        if(last>prev) { prCount++; prs.push({name:ex.name, kg:last, prev}); }
+      }
+    });
+  });
+
+  let html = `
+  <div class="section-title">Minggu Ini</div>
+  <div class="stat-grid">
+    <div class="stat-box"><div class="stat-val">${totalSessions}</div><div class="stat-lbl">Sesi Latihan</div></div>
+    <div class="stat-box"><div class="stat-val">${totalSets}</div><div class="stat-lbl">Total Set</div></div>
+    <div class="stat-box"><div class="stat-val">${totalVol>0?(totalVol/1000).toFixed(1)+'t':'0'}</div><div class="stat-lbl">Volume Angkat</div></div>
+    <div class="stat-box"><div class="stat-val">${prCount}</div><div class="stat-lbl">PR Baru 🏆</div></div>
+  </div>`;
+
+  if(sessionDays.length>0){
+    html += `<div class="section-title">Hari Latihan</div>
+    <div class="card" style="padding:10px 14px;">
+      ${sessionDays.map(d=>`<span style="display:inline-block;margin:3px;padding:4px 10px;background:var(--bg3);border-radius:8px;font-size:12px;font-weight:600;">${d}</span>`).join('')}
+    </div>`;
+  }
+
+  if(prs.length>0){
+    html += `<div class="section-title">PR Terbaru 🏆</div>`;
+    prs.slice(0,5).forEach(pr=>{
+      html += `<div class="card" style="padding:10px 14px;display:flex;justify-content:space-between;align-items:center;">
+        <div style="font-size:13px;font-weight:600;">${pr.name}</div>
+        <div style="text-align:right;">
+          <div style="font-size:16px;font-weight:800;color:var(--accent)">${pr.kg} kg</div>
+          <div style="font-size:11px;color:var(--green)">+${(pr.kg-pr.prev).toFixed(1)} dari sebelumnya</div>
+        </div>
+      </div>`;
+    });
+  }
+
+  // weekly volume by day
+  html += `<div class="section-title">Volume per Hari (Minggu Ini)</div>
+  <div class="card">
+    <div class="mini-chart" style="height:80px;">`;
+
+  let dayVols = [];
+  for(let i=0;i<6;i++){
+    let d=new Date(ws); d.setDate(ws.getDate()+i);
+    let dk=dateKey(d);
+    let vol=0;
+    if(logs[dk]) Object.keys(logs[dk]).forEach(exId=>{
+      (logs[dk][exId]||[]).filter(s=>s.kg&&s.reps).forEach(s=>{vol+=(parseFloat(s.kg)||0)*(parseFloat(s.reps)||0);});
+    });
+    dayVols.push({day:['Sen','Sel','Rab','Kam','Jum','Sab'][i],vol});
+  }
+  let maxDV = Math.max(...dayVols.map(d=>d.vol),1);
+  dayVols.forEach(dv=>{
+    let pct=Math.max(Math.round((dv.vol/maxDV)*100),dv.vol>0?5:0);
+    html+=`<div class="bar-wrap">
+      <div class="bar" style="height:${pct}%;opacity:${dv.vol>0?1:0.2};"></div>
+      <div class="bar-lbl">${dv.day}</div>
+    </div>`;
+  });
+  html += `</div></div>`;
+
+  if(totalSessions===0){
+    html+=`<div class="empty"><div class="icon">📋</div><p>Belum ada sesi minggu ini. Yuk mulai latihan!</p></div>`;
+  }
+
+  document.getElementById('report-content').innerHTML = html;
+}
+
+// ─── TOAST ───────────────────────────────────────────────────────
+function showToast(msg){
+  let t=document.getElementById('toast');
+  t.textContent=msg; t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),2000);
+}
+
+// ─── PWA SERVICE WORKER ─────────────────────────────────────────
+if('serviceWorker' in navigator){
+  const sw=`
+const CACHE='gymlog-v1';
+const ASSETS=['/'];
+self.addEventListener('install',e=>e.waitUntil(caches.open(CACHE).then(c=>c.addAll(ASSETS))));
+self.addEventListener('fetch',e=>e.respondWith(caches.match(e.request).then(r=>r||fetch(e.request))));
+  `;
+  const blob=new Blob([sw],{type:'application/javascript'});
+  const url=URL.createObjectURL(blob);
+  navigator.serviceWorker.register(url).catch(()=>{});
+}
+
+// ─── INIT ────────────────────────────────────────────────────────
+renderToday();
+</script>
+</body>
+</html>
