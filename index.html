@@ -5,6 +5,8 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1"/>
 <meta name="theme-color" content="#0f0f0f"/>
 <meta name="apple-mobile-web-app-capable" content="yes"/>
+<link rel="manifest" href="data:application/json,{&quot;name&quot;:&quot;GymLog&quot;,&quot;short_name&quot;:&quot;GymLog&quot;,&quot;display&quot;:&quot;fullscreen&quot;,&quot;start_url&quot;:&quot;./&quot;,&quot;background_color&quot;:&quot;%230f0f0f&quot;,&quot;theme_color&quot;:&quot;%230f0f0f&quot;,&quot;icons&quot;:[{&quot;src&quot;:&quot;data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%230f0f0f'/><text y='.9em' font-size='80' x='10'>💪</text></svg>&quot;,&quot;sizes&quot;:&quot;any&quot;,&quot;type&quot;:&quot;image/svg+xml&quot;}]}"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
 <title>GymLog</title>
 <style>
@@ -586,6 +588,16 @@ function renderReport(){
     html+=`<div class="empty"><div class="icon">📋</div><p>Belum ada sesi minggu ini. Yuk mulai latihan!</p></div>`;
   }
 
+  // Export / Import
+  html += `<div class="section-title">Backup & Restore</div>
+  <div class="card" style="display:flex;flex-direction:column;gap:8px;">
+    <button class="btn btn-accent" onclick="exportData()">⬇️ Export Backup (.json)</button>
+    <label class="btn btn-ghost" style="text-align:center;cursor:pointer;">
+      ⬆️ Import Backup
+      <input type="file" accept=".json" style="display:none" onchange="importData(event)">
+    </label>
+  </div>`;
+
   document.getElementById('report-content').innerHTML = html;
 }
 
@@ -606,12 +618,47 @@ self.addEventListener('fetch',e=>e.respondWith(caches.match(e.request).then(r=>r
   `;
   const blob=new Blob([sw],{type:'application/javascript'});
   const url=URL.createObjectURL(blob);
-  if('serviceWorker' in navigator){
-      navigator.serviceWorker.register('./sw.js').catch(()=>{});
-    }
+  navigator.serviceWorker.register(url).catch(()=>{});
 }
 
-// ─── INInavigator.serviceWorker.register(url).catch(()=>{});────────────────────────────────────────────────────────
+// ─── EXPORT / IMPORT ────────────────────────────────────────────
+function exportData(){
+  const data = JSON.stringify(logs, null, 2);
+  const blob = new Blob([data], {type:'application/json'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `gymlog-backup-${new Date().toISOString().slice(0,10)}.json`;
+  a.click();
+  URL.revokeObjectURL(url);
+  showToast('Backup tersimpan! 📦');
+}
+
+function importData(e){
+  const file = e.target.files[0];
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = function(ev){
+    try{
+      const imported = JSON.parse(ev.target.result);
+      // merge dengan data existing
+      Object.keys(imported).forEach(dk => {
+        if(!logs[dk]) logs[dk] = {};
+        Object.keys(imported[dk]).forEach(exId => {
+          logs[dk][exId] = imported[dk][exId];
+        });
+      });
+      saveLogs();
+      showToast('Data berhasil diimport! ✅');
+      renderReport();
+    } catch(err){
+      showToast('File tidak valid ❌');
+    }
+  };
+  reader.readAsText(file);
+}
+
+// ─── INIT ────────────────────────────────────────────────────────
 renderToday();
 </script>
 </body>
