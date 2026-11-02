@@ -52,7 +52,7 @@ function guidedListItem(e,i,a){
 function guidedDock(a,c){
   const states={
     prepare:['SIAP MULAI',c?'Mulai latihan':'Tambahkan gerakan','guidedStart','play','Belum ada checklist sebelum Start.'],
-    working:['AKTIF',c?.exercise.type==='cardio'?'Selesaikan kardio':'Selesaikan set '+(c.setIndex+1),'guidedComplete','check','Selesai → otomatis istirahat → langkah berikutnya.'],
+    working:['AKTIF',c?.exercise.type==='cardio'?'Selesaikan kardio':'Selesaikan set '+((c?.setIndex??0)+1),'guidedComplete','check','Selesai → otomatis istirahat → langkah berikutnya.'],
     rest:['ISTIRAHAT','Lewati istirahat','guidedSkip','right','Timer akan lanjut otomatis setelah selesai.'],
     complete:['TUNTAS','Simpan hasil latihan','guidedFinish','save','Progress selesai terkunci.']
   };
