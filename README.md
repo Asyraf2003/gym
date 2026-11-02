@@ -64,3 +64,9 @@ Native Jetpack Compose + Room SQLite (default), provider backup privat opsional,
 - Reset hanya mengatur draft ke Beban + 7 hari sampai Terapkan. Analytics dan Guided Workout v0.7 dipertahankan.
 - Kedua tema terang/gelap tetap didukung. Ini UI preview localStorage, bukan SQLite native atau GitHub backup.
 - Package preview v0.8 `id.forgefit.preview.v08` terpisah dari v0.7 karena debug signing GitHub runner belum stabil.
+
+## v0.8.1: Filter bottom sheet tidak refresh ketika memilih opsi
+- Tap Bagian/Rentang/Reset hanya mengubah state radio button dan aria-checked di DOM yang sama.
+- Modal tidak di-render ulang, animasi tidak restart, posisi sheet tetap.
+- Pilihan belum diterapkan sampai tombol Terapkan. Cancel/backdrop/swipe tetap membuang draft.
+- Preview APK dipisahkan sebagai `id.forgefit.preview.v081` untuk menjaga data yang tersimpan di APK lama; riwayat tidak berpindah otomatis.

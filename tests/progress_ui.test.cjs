@@ -3,6 +3,9 @@ const base=path.join(__dirname,"../app/src/main/assets");
 function harness(){
   const blank=()=>({innerHTML:"",textContent:"",style:{},classList:{add(){},remove(){},toggle(){}},offsetWidth:100});
   const els=new Map(["#app","#nav","#dialog","#toast"].map(k=>[k,blank()])),handlers={},data=new Map(),inputs=new Map();
+  let modalWrites=0;
+  const d=els.get("#dialog");let htmlValue=d.innerHTML;
+  Object.defineProperty(d,"innerHTML",{get(){return htmlValue},set(v){modalWrites++;htmlValue=v;}});
   const document={
     querySelector:q=>els.get(q)||{...blank(),setAttribute(){}},
     getElementById:id=>inputs.get(id)||null,
@@ -21,6 +24,7 @@ function harness(){
     state:()=>JSON.parse(data.get("forgefit-ui-demo-v3")),
     html:()=>els.get("#app").innerHTML,
     modal:()=>els.get("#dialog").innerHTML,
+    modalWrites:()=>modalWrites,
     back:()=>window.forgeFitBack(),
     backdrop:()=>{const node={dataset:{act:"tutupLuar"}};node.closest=()=>node;handlers.click({target:node})},
     storage:data
@@ -156,4 +160,21 @@ test("Filter Reset changes draft only; backdrop and Android Back leave active va
  assert.equal(h.modal(),"");assert.equal(h.state().progressFilter,"Kardio");
  h.click("bukaFilterProgres");h.click("resetFilterProgres");h.click("terapkanFilterProgres");
  assert.equal(h.state().progressFilter,"Beban");assert.equal(h.state().progressRange,"7");
+});
+
+test("Filter selection never re-creates the bottom sheet (no refresh or replayed slide-up)",()=>{
+ const h=harness();h.click("pindah",{page:"progres"});
+ h.click("bukaFilterProgres");const firstHTML=h.modal(),firstWrites=h.modalWrites();
+ h.click("draftBagian",{name:"Kardio"});
+ h.click("draftRentang",{name:"30"});
+ h.click("resetFilterProgres");
+ assert.equal(h.modalWrites(),firstWrites,"Filter selection must not rewrite dialog.innerHTML");
+ assert.equal(h.modal(),firstHTML,"The original sheet DOM must remain mounted");
+ assert.equal(h.state().progressFilter,"Beban");
+ assert.equal(h.state().progressRange,"7");
+ h.click("draftBagian",{name:"Tubuh"});
+ h.click("terapkanFilterProgres");
+ assert.equal(h.state().progressFilter,"Tubuh");
+ assert.equal(h.state().progressRange,"7");
+ assert.equal(h.modal(),"");
 });

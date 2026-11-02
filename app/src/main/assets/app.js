@@ -1,6 +1,6 @@
 (()=>{'use strict';
 const $=s=>document.querySelector(s),app=$('#app'),nav=$('#nav'),dialog=$('#dialog'),toast=$('#toast');
-const APP_VERSION=$('meta[name="forgefit-version"]')?.content||'0.8.0-preview';
+const APP_VERSION=$('meta[name="forgefit-version"]')?.content||'0.8.1-preview';
 function closeSplash(){const node=document.getElementById('splash');if(!node||node.classList.contains?.('is-hidden'))return;node.classList.add('is-hidden');setTimeout(()=>node.remove(),450)}
 document.getElementById('skipSplash')?.addEventListener('click',closeSplash);
 

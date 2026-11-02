@@ -154,11 +154,11 @@
      case "bukaFilterProgres":
        s.filterDraft=s.progressFilter;s.rangeDraft=s.progressRange;s.modal="filterProgres";renderModal();break;
      case "draftBagian":
-       if(s.modal==="filterProgres"&&["Beban","Kardio","Tubuh"].includes(node.dataset.name)){s.filterDraft=node.dataset.name;renderModal()}break;
+       if(s.modal==="filterProgres"&&["Beban","Kardio","Tubuh"].includes(node.dataset.name)){s.filterDraft=node.dataset.name;syncFilterOptions(s)}break;
      case "draftRentang":
-       if(s.modal==="filterProgres"&&["7","30","all"].includes(node.dataset.name)){s.rangeDraft=node.dataset.name;renderModal()}break;
+       if(s.modal==="filterProgres"&&["7","30","all"].includes(node.dataset.name)){s.rangeDraft=node.dataset.name;syncFilterOptions(s)}break;
      case "resetFilterProgres":
-       if(s.modal==="filterProgres"){s.filterDraft="Beban";s.rangeDraft="7";renderModal()}break;
+       if(s.modal==="filterProgres"){s.filterDraft="Beban";s.rangeDraft="7";syncFilterOptions(s)}break;
      case "terapkanFilterProgres":
        if(s.modal==="filterProgres"){
          s.progressFilter=["Beban","Kardio","Tubuh"].includes(s.filterDraft)?s.filterDraft:s.progressFilter;
@@ -199,6 +199,18 @@
      case "detailKardio":s.cardioDetailName=node.dataset.name;s.modal="kardioDetail";renderModal();break;
    }
    return true;
+ }
+ // Change only selected radio states. Never rebuild an open bottom sheet.
+ function syncFilterOptions(s){
+   const sheet=document.querySelector('.progress-filter-sheet');
+   if(!sheet||!sheet.querySelectorAll)return;
+   sheet.querySelectorAll('.progress-filter-option').forEach(option=>{
+     const kind=option.dataset.act;
+     const selected=kind==='draftBagian'?option.dataset.name===s.filterDraft:
+       kind==='draftRentang'?option.dataset.name===s.rangeDraft:false;
+     option.classList.toggle('active',selected);
+     option.setAttribute('aria-checked',String(selected));
+   });
  }
  function filterModal({s,modal,btn,esc}){
   const selectedSection=s.filterDraft||s.progressFilter,selectedRange=s.rangeDraft||s.progressRange;

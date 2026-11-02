@@ -35,9 +35,9 @@ test('UI: free workout can add its first exercise',()=>{
 });
 test('UI: current version is visible and opens about modal',()=>{
  const h=harness();
- assert.match(h.html(),/v0\.8\.0/);
+ assert.match(h.html(),/v0\.8\.1/);
  h.click('infoVersi');
- assert.match(h.modal(),/ForgeFit v0\.8\.0-preview/);
+ assert.match(h.modal(),/ForgeFit v0\.8\.1-preview/);
  h.click('tutup');
  assert.equal(h.modal(),'');
 });
