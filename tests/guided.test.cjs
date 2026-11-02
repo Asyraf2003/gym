@@ -107,7 +107,7 @@ test('working cardio may be renamed without losing its elapsed data',()=>{
 });
 test('completed cardio cannot be renamed and rest step is immutable',()=>{
  const a=session();
- G.start(a,1000);G.complete(a,90,2000);
+ G.start(a,Date.now()-1000);G.complete(a,90,Date.now());
  assert.equal(G.changeExercise(a,0,'Other','strength'),false);
  const b=session();b.exerciseIndex=1;b.phase='prepare';
  G.start(b,1000);G.complete(b,0,2000);
