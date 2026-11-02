@@ -23,8 +23,12 @@ jobs:
         uses: gradle/actions/setup-gradle@v4
         with:
           gradle-version: '8.11.1'
-      - name: Siapkan Android SDK
-        uses: android-actions/setup-android@v3
+      - name: Periksa Android SDK runner
+        run: |
+          echo "ANDROID_HOME=$ANDROID_HOME"
+          test -d "$ANDROID_HOME"
+          ls "$ANDROID_HOME/platforms"
+          ls "$ANDROID_HOME/build-tools"
       - name: Periksa JavaScript
         run: node --check app/src/main/assets/app.js
       - name: Periksa kelengkapan UI
