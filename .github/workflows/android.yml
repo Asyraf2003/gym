@@ -37,7 +37,7 @@ jobs:
           node --check app/src/main/assets/progress.js
           node --check app/src/main/assets/progress-ui.js
           node --check app/src/main/assets/notify.js
-          node --test tests/guided.test.cjs tests/guided_ui.test.cjs tests/progress.test.cjs tests/progress_ui.test.cjs tests/notify_ui.test.cjs
+          node --test tests/guided.test.cjs tests/guided_ui.test.cjs tests/progress.test.cjs tests/progress_ui.test.cjs tests/notify_ui.test.cjs tests/picker_ui.test.cjs
       - name: Test Reminder Scheduler (Java)
         run: |
           mkdir -p /tmp/forgefit-notify-test
@@ -50,7 +50,7 @@ jobs:
       - name: Unggah APK
         uses: actions/upload-artifact@v4
         with:
-          name: ForgeFit-v0.9.1-Exercise-Tuning-and-Search
+          name: ForgeFit-v0.9.2-Picker-UX-FIX
           path: app/build/outputs/apk/debug/app-debug.apk
           if-no-files-found: error
           retention-days: 30

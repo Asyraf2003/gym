@@ -92,3 +92,11 @@ Native Jetpack Compose + Room SQLite (default), provider backup privat opsional,
 - Pergantian jenis pencatatan pada langkah yang sedang aktif harus menunggu sebelum Start (untuk mencegah kehilangan timer/set).
 - Ini tetap UI preview dengan localStorage, belum SQLite maupun update APK bertanda tangan stabil.
 - APK dipasang terpisah sebagai `id.forgefit.preview.v091` supaya data aplikasi lama tidak berubah.
+
+## v0.9.2: Perbaikan UX Tuning / pencarian / Progress
+- Bottom sheet tidak lagi mengekspos background putih: window Android bertema gelap, overscroll WebView dimatikan, dan body scroll dikunci saat dialog terbuka.
+- Picker kini menggunakan pencarian langsung, satu dropdown kategori (tanpa chips terpotong), hasil maksimal enam dulu, penghitung hasil, tombol Tampilkan lagi, serta tombol hapus pencarian.
+- Mengganti kategori atau mengetik tidak membuat ulang sheet; daftar selalu kembali ke awal ketika filter berubah. Tidak ada nested scrolling di daftar hasil.
+- Setelah memilih gerakan dari katalog, nama di form diperbarui dan muncul konfirmasi sebelum tombol OK menyimpan perubahan.
+- Progress Beban menggunakan dropdown nama gerakan agar pilihan aktif selalu terlihat, termasuk untuk banyak gerakan.
+- Data dan pencatatan completed sets tetap mengikuti engine sebelumnya. Preview memakai application ID berbeda agar APK lama tidak tertimpa; data localStorage belum bermigrasi.

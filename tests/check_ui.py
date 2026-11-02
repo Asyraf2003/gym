@@ -20,7 +20,7 @@ import re
 gradle=Path("app/build.gradle.kts").read_text(encoding="utf-8")
 manifest=Path("app/src/main/AndroidManifest.xml").read_text(encoding="utf-8")
 version=re.search(r'versionName\s*=\s*"([^"]+)"',gradle).group(1)
-assert version=="0.9.1-preview", f"Unexpected Gradle version: {version}"
+assert version=="0.9.2-preview", f"Unexpected Gradle version: {version}"
 assert f'content="{version}"' in html, "Splash version does not match native APK version"
 assert f"VERSION {version.split('-')[0]}" in html, "Visible splash version missing"
 assert 'id="splash"' in html and 'id="skipSplash"' in html, "Opening screen missing"
@@ -33,8 +33,8 @@ assert all(k in progress_ui for k in ["draftBagian","draftRentang","resetFilterP
 assert "progress-filter-icon" in css and "filterRise" in css, "Bottom sheet icon/animation missing"
 assert "progressRange:previous.progressRange||'7'" in js, "Default range must be 7 days"
 
-assert 'applicationId = "id.forgefit.preview.v091"' in gradle, "Preview APK must install beside old version"
-assert 'android:label="ForgeFit Preview 0.9.1"' in manifest, "Launcher label not versioned"
+assert 'applicationId = "id.forgefit.preview.v092"' in gradle, "Preview APK must install beside old version"
+assert 'android:label="ForgeFit Preview 0.9.2"' in manifest, "Launcher label not versioned"
 assert 'android:name="id.forgefit.app.MainActivity"' in manifest, "Activity must use full class name"
 print("Versi APK, opening screen, and preview identity: PASS")
 
@@ -71,3 +71,14 @@ assert "['Semua','Kardio','Dada','Punggung','Kaki','Perut']" in js, "Core catego
 assert "Cable Crunch" in js and "Mountain Climbers" in js and "Treadmill HIIT" in js, "Expanded core/cardio catalog missing"
 assert "exercise-picker-list" in css and "guided-name-editor" in css, "Search and tuning styles missing"
 print("Exercise tuning/search integration: PASS")
+
+# UX regression: search controls update inline, no nested list scroll, progress selection always visible.
+assert "const PICKER_STEP=6" in js, "Picker needs bounded initial results"
+assert "data-picker-category" in js and "case 'moreExerciseResults'" in js, "Picker category/more wiring absent"
+assert "if(n.dataset.pickerCategory)" in js and "if(n.id==='progressExerciseSelect')" in js, "Live select handlers missing"
+assert "body.modal-open" in css and ".exercise-picker-list{overflow:visible" in css, "Modal scroll/background fix missing"
+assert "progress-exercise-select" in (p/"progress-ui.js").read_text(encoding="utf-8"), "Selected exercise visibility fix missing"
+theme=Path("app/src/main/res/values/styles.xml").read_text(encoding="utf-8")
+assert "android:windowBackground" in theme and "#0B1119" in theme, "Android white window corner not fixed"
+assert "webView.setOverScrollMode" in main, "WebView overscroll still enabled"
+print("Picker responsiveness, progress selector, and Android sheet background: PASS")

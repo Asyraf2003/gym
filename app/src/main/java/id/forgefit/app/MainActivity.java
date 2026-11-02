@@ -34,6 +34,7 @@ public final class MainActivity extends Activity {
     exactPermissionWasAllowed = NotificationScheduler.canUseExact(this);
     webView = new WebView(this);
     webView.setBackgroundColor(Color.rgb(11,17,25));
+    webView.setOverScrollMode(android.view.View.OVER_SCROLL_NEVER);
     webView.getSettings().setJavaScriptEnabled(true);
     webView.getSettings().setDomStorageEnabled(true);
     webView.getSettings().setAllowFileAccess(true);

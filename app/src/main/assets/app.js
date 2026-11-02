@@ -1,6 +1,6 @@
 (()=>{'use strict';
 const $=s=>document.querySelector(s),app=$('#app'),nav=$('#nav'),dialog=$('#dialog'),toast=$('#toast');
-const APP_VERSION=$('meta[name="forgefit-version"]')?.content||'0.9.1-preview';
+const APP_VERSION=$('meta[name="forgefit-version"]')?.content||'0.9.2-preview';
 function closeSplash(){const node=document.getElementById('splash');if(!node||node.classList.contains?.('is-hidden'))return;node.classList.add('is-hidden');setTimeout(()=>node.remove(),450)}
 document.getElementById('skipSplash')?.addEventListener('click',closeSplash);
 
@@ -103,24 +103,48 @@ function active(){
     <div class="guided-early">${btn('selesai','Akhiri sesi lebih awal','secondary small')}</div>
     ${a.phase==='complete'||c?guidedDock(a,c):''}`;
 }
-function exerciseResultsHtml(query='',category='Semua',action='pilihGerakanSekarang'){
+const pickerCategories=['Semua','Dada','Punggung','Kaki','Perut','Kardio','Bahu','Lengan','Inti'];
+const PICKER_STEP=6;
+function exerciseMatches(query='',category='Semua'){
  const q=String(query).trim().toLocaleLowerCase('id-ID');
- const entries=catalog.filter(e=>(category==='Semua'||e.cat===category)&&(!q||(e.name+' '+e.cat).toLocaleLowerCase('id-ID').includes(q)));
- return entries.length?entries.map(e=>`<button type="button" class="list-row exercise-choice" data-act="${action}" data-name="${esc(e.name)}">
- <span class="grow"><b>${esc(e.name)}</b><small>${esc(e.cat)} · ${e.type==='cardio'?'Durasi / intensitas':'Set / repetisi'}</small></span>${ico('right',16)}</button>`).join(''):'<div class="hint">Tidak ditemukan. Coba kata lain atau buat sendiri.</div>';
+ return catalog.filter(e=>(category==='Semua'||e.cat===category)&&(!q||(e.name+' '+e.cat).toLocaleLowerCase('id-ID').includes(q)));
+}
+function exerciseResultsHtml(entries,action,visible=PICKER_STEP){
+ if(!entries.length)return '<div class="exercise-picker-empty">Tidak ada gerakan yang cocok. Coba nama lain atau pilih kategori berbeda.</div>';
+ return entries.slice(0,visible).map(e=>`<button type="button" class="exercise-result" data-act="${action}" data-name="${esc(e.name)}" aria-label="Pilih ${esc(e.name)}">
+ <span class="exercise-result-icon">${ico(categoryIcon(e.cat),18)}</span>
+ <span class="grow"><b>${esc(e.name)}</b><small>${esc(e.cat)} · ${e.type==='cardio'?'Durasi':'Set / reps'}</small></span>${ico('right',17)}</button>`).join('');
 }
 function exerciseSearchControls(action,scope){
- return `<div class="exercise-picker"><div class="field"><label for="${scope}Search">Cari gerakan</label>
- <input type="search" id="${scope}Search" data-input="${scope}Search" placeholder="Cari dada, punggung, kaki, perut, kardio..." autocomplete="off"></div>
- <div class="chips exercise-category-picks" id="${scope}Categories">${['Semua','Dada','Punggung','Kaki','Perut','Kardio','Bahu','Lengan','Inti'].map(c=>`<button type="button" class="chip ${c==='Semua'?'active':''}" data-act="${scope}Category" data-category="${esc(c)}">${esc(c)}</button>`).join('')}</div>
- <div class="exercise-picker-list" id="${scope}Results" data-picker-action="${action}" data-category="Semua">${exerciseResultsHtml('','Semua',action)}</div></div>`;
+ const entries=exerciseMatches();
+ const options=pickerCategories.map(c=>`<option value="${esc(c)}">${c==='Semua'?'Semua kategori':esc(c)}</option>`).join('');
+ return `<div class="exercise-picker" data-scope="${scope}">
+ <label class="exercise-search-label" for="${scope}Search">Cari gerakan</label>
+ <div class="exercise-search-box">${ico('search',19)}<input type="search" id="${scope}Search" data-input="${scope}Search" placeholder="Contoh: squat, crunch, running" autocomplete="off" spellcheck="false">
+ <button type="button" class="exercise-search-clear" data-act="clearExerciseSearch" data-scope="${scope}" aria-label="Hapus pencarian" hidden>${ico('close',16)}</button></div>
+ <div class="exercise-picker-toolbar"><label for="${scope}Category">Kategori</label>
+ <select id="${scope}Category" class="exercise-picker-category" data-picker-category="${scope}" aria-label="Filter kategori gerakan">${options}</select>
+ <span id="${scope}Count" class="exercise-picker-count" role="status">${Math.min(PICKER_STEP,entries.length)} dari ${entries.length}</span></div>
+ <div class="exercise-picker-list" id="${scope}Results" data-picker-action="${action}" data-category="Semua" data-visible="${PICKER_STEP}">
+ ${exerciseResultsHtml(entries,action)}</div>
+ <button type="button" id="${scope}More" class="exercise-more" data-act="moreExerciseResults" data-scope="${scope}" ${entries.length<=PICKER_STEP?'hidden':''}>
+ Tampilkan ${Math.min(PICKER_STEP,entries.length-PICKER_STEP)} lagi ${ico('down',15)}</button></div>`;
 }
-function filterExerciseResults(scope,category){
- const input=document.getElementById(scope+'Search'),list=document.getElementById(scope+'Results'),categories=document.getElementById(scope+'Categories');
+function filterExerciseResults(scope,category,more=false){
+ const input=document.getElementById(scope+'Search'),list=document.getElementById(scope+'Results');
+ const select=document.getElementById(scope+'Category'),count=document.getElementById(scope+'Count');
+ const moreButton=document.getElementById(scope+'More'),clear=document.querySelector(`#${scope}Search`)?.parentElement?.querySelector('.exercise-search-clear');
  if(!input||!list)return;
- list.dataset.category=category;
- list.innerHTML=exerciseResultsHtml(input.value,category,list.dataset.pickerAction);
- categories?.querySelectorAll?.('[data-category]').forEach(n=>{const yes=n.dataset.category===category;n.classList.toggle('active',yes);n.setAttribute('aria-pressed',String(yes))});
+ const chosen=pickerCategories.includes(category)?category:'Semua';
+ const entries=exerciseMatches(input.value,chosen);
+ const visible=more?Math.max(PICKER_STEP,Number(list.dataset.visible)||PICKER_STEP)+PICKER_STEP:PICKER_STEP;
+ list.dataset.category=chosen;list.dataset.visible=String(visible);
+ list.innerHTML=exerciseResultsHtml(entries,list.dataset.pickerAction,visible);
+ if(select)select.value=chosen;
+ if(count)count.textContent=`${Math.min(visible,entries.length)} dari ${entries.length}`;
+ if(clear)clear.hidden=!input.value;
+ if(moreButton){moreButton.hidden=visible>=entries.length;moreButton.innerHTML=`Tampilkan ${Math.min(PICKER_STEP,entries.length-visible)} lagi ${ico('down',15)}`}
+ if(!more)list.scrollTop=0;
 }
 function guidedModal(){
   const a=ForgeFitGuided.ensure(s.active),G=ForgeFitGuided;if(!a){dismiss();return}
@@ -142,7 +166,8 @@ function guidedModal(){
   const nameControls=`<div class="guided-name-editor">
     ${f('guidedName','Nama gerakan',e.name,'text',`maxlength="70" ${nameLocked?'disabled':''}`)}
     ${select('guidedRecordingType','Jenis pencatatan',['Beban (set / reps)','Kardio (durasi)'],e.type==='cardio'?'Kardio (durasi)':'Beban (set / reps)')}
-    ${btn('guidedToggleSearch',`${ico('search',16)} Cari & pilih gerakan`,'outline block',nameLocked?'disabled':'')}
+    ${btn('guidedToggleSearch',`${ico('search',16)} Pilih dari katalog ${ico('down',15)}`,'outline block',nameLocked?'disabled':'')}
+    <div id="guidedPicked" class="guided-picked" role="status" hidden></div>
     <div id="guidedSearchPanel" class="guided-search-panel" hidden>
       ${exerciseSearchControls('guidedChooseExercise','guided')}
     </div>
@@ -158,7 +183,7 @@ function guidedModal(){
     <div class="chips">${choices}</div>${nameControls}${fields}
     ${f('guidedRest','Istirahat berikutnya (detik)',s.restDefault,'number','min="0" max="600"')}
     <div class="hint">OK kembali ke langkah yang sama. Timer berjalan tidak di-reset.</div>`,
-    `<div class="actions">${btn('tutup','Batal','secondary')}${btn('guidedSaveTune','OK · Lanjutkan')}</div>`);
+    `<div class="actions">${btn('tutup','Batal','secondary')}${btn('guidedSaveTune','OK · Lanjutkan')}</div>`, 'guided-tune-sheet');
 }
 function guidedAction(name,node){
   if(!name.startsWith('guided'))return false;
@@ -174,14 +199,23 @@ function guidedAction(name,node){
     case 'guidedTuneTarget':s.tuneIndex=Number(node.dataset.ex);renderModal();break;
     case 'guidedToggleSearch':{
       const panel=document.getElementById('guidedSearchPanel');
-      if(panel){panel.hidden=!panel.hidden;if(!panel.hidden){filterExerciseResults('guided','Semua');document.getElementById('guidedSearch')?.focus?.()}}
+      if(panel){panel.hidden=!panel.hidden;if(!panel.hidden){
+        const chosen=document.getElementById('guidedCategory')?.value||'Semua';
+        filterExerciseResults('guided',chosen);
+        document.getElementById('guidedSearch')?.focus?.({preventScroll:true});
+        panel.scrollIntoView?.({block:'nearest',behavior:s.animations?'smooth':'instant'});
+      }}
       break;
     }
     case 'guidedChooseExercise':{
       const entry=catalog.find(x=>x.name===node.dataset.name);
       const input=document.getElementById('guidedName'),type=document.getElementById('guidedRecordingType');
       if(entry&&input){input.value=entry.name;if(type)type.value=entry.type==='cardio'?'Kardio (durasi)':'Beban (set / reps)';
-        const panel=document.getElementById('guidedSearchPanel');if(panel)panel.hidden=true}
+        const panel=document.getElementById('guidedSearchPanel');if(panel)panel.hidden=true;
+        const notice=document.getElementById('guidedPicked');
+        if(notice){notice.textContent=`${entry.name} dipilih · ketuk OK untuk menyimpan`;notice.hidden=false}
+        input.scrollIntoView?.({block:'center',behavior:s.animations?'smooth':'instant'});
+      }
       break;
     }
     case 'guidedMoreSet':if(G.resizeSets(a,s.tuneIndex,1))renderModal();else warn('Set terkunci tidak dapat dihapus');break;
@@ -219,10 +253,10 @@ function exercisesPage(){return `${back('latihan')}${heading('Daftar gerakan','P
 function listExercises(){let filtered=catalog.filter(e=>e.name.toLowerCase().includes(s.search.toLowerCase()));return filtered.map(e=>`<button class="list-row" data-act="detailGerakan" data-name="${esc(e.name)}"><div class="mark">${ico(categoryIcon(e.cat))}</div><span class="grow"><b>${esc(e.name)}</b><small>${esc(e.cat)} · ${e.type==='cardio'?'Kardio':'Latihan beban'}</small></span>${ico('right')}</button>`).join('')||'<p class="empty">Gerakan tidak ditemukan.</p>'}
 function draw(){if(s.active)ForgeFitGuided.ensure(s.active);document.body.classList.toggle('guided',s.page==='aktif');let sys=window.matchMedia?.('(prefers-color-scheme: dark)').matches?'gelap':'terang',theme=s.theme==='sistem'?sys:s.theme;document.body.classList.toggle('light',theme==='terang');document.documentElement.classList.toggle('light',theme==='terang');document.querySelector('meta[name="theme-color"]')?.setAttribute('content',theme==='terang'?'#f5f7fa':'#0b1119');document.body.classList.toggle('reduced',!s.animations);let views={beranda:home,latihan:train,rincian:detail,aktif:active,progres:progress,riwayat:allHistory,detailRiwayat:detailHistory,pengaturan:settings,gerakan:exercisesPage};app.innerHTML=(views[s.page]||home)();app.classList.remove('enter');void app.offsetWidth;app.classList.add('enter');renderNav();renderModal();updateClocks();save()}
 function renderNav(){nav.style.display=s.page==='aktif'?'none':'';if(s.page==='aktif'){nav.innerHTML='';return}let items=[['beranda','Beranda','home'],['latihan','Latihan','dumbbell'],['progres','Progres','chart'],['pengaturan','Pengaturan','settings']];nav.innerHTML=items.map(([id,label,icon])=>`<button data-act="pindah" data-page="${id}" class="${s.page===id?'active':''}" aria-label="${label}" ${s.page===id?'aria-current="page"':''}>${ico(icon)}<span>${label}</span></button>`).join('')}
-function modal(title,content,buttons='',sheetClass=''){dialog.innerHTML=`<div class="modal-backdrop" data-act="tutupLuar"><section class="sheet ${sheetClass}" role="dialog" aria-modal="true" aria-label="${esc(title)}"><div class="grab" ${sheetClass==='progress-filter-sheet'?'id="progressFilterGrip" aria-label="Tarik ke bawah untuk menutup"':''}></div><div class="row"><h2>${esc(title)}</h2><button class="btn secondary iconbtn" data-act="tutup" aria-label="Tutup">${ico('close')}</button></div>${content}${buttons}</section></div>`}
+function modal(title,content,buttons='',sheetClass=''){document.body.classList.add('modal-open');dialog.innerHTML=`<div class="modal-backdrop" data-act="tutupLuar"><section class="sheet ${sheetClass}" role="dialog" aria-modal="true" aria-label="${esc(title)}"><div class="grab" ${sheetClass==='progress-filter-sheet'?'id="progressFilterGrip" aria-label="Tarik ke bawah untuk menutup"':''}></div><div class="row"><h2>${esc(title)}</h2><button class="btn secondary iconbtn" data-act="tutup" aria-label="Tutup">${ico('close')}</button></div>${content}${buttons}</section></div>`}
 function f(id,label,value='',type='text',extra=''){return `<div class="field"><label for="${id}">${label}</label><input id="${id}" type="${type}" value="${esc(value)}" ${extra}></div>`}
 function select(id,label,options,value){return `<div class="field"><label for="${id}">${label}</label><select id="${id}">${options.map(n=>`<option ${n===value?'selected':''}>${esc(n)}</option>`).join('')}</select></div>`}
-function renderModal(){if(s.modal==='guidedTune'||s.modal==='guidedQueue'){guidedModal();return}if(!s.modal){dialog.innerHTML='';return}const m=s.modal;if(m==='filterProgres'){ForgeFitProgressUI.filterModal({s,modal,btn,esc,ico});return}if(['profil','catatBB','detailBB','hapusBB'].includes(m)){ForgeFitProgressUI.renderModal({s,modal,f,select,btn,esc});return}if(m==='kardioDetail'){ForgeFitProgressUI.cardioModal({s,modal,btn,esc});return}if(m==='rutinitasBaru'||m==='rutinitasEdit'){const r=m==='rutinitasEdit'?s.routines.find(x=>x.id===s.routineId):null;modal(r?'Ubah rutinitas':'Rutinitas baru',f('routineName','Nama rutinitas',r?.name||'')+select('routineCat','Kategori utama',['Dada','Punggung','Kaki','Kardio','Perut'],r?.category||s.editCategory)+f('routineDuration','Perkiraan durasi (menit)',r?.duration||45,'number','min="1" max="300"')+f('routineDetail','Keterangan singkat',r?.detail||'')+(r?`<p class="muted">Gerakan saat ini: ${r.exercises.length}. Urutan gerakan dapat diubah di bawah.</p><div id="editMoves">${r.exercises.map((n,i)=>`<div class="list-row"><b class="grow">${i+1}. ${esc(n)}</b>${btn('naikGerakan',ico('up'),'secondary iconbtn',`data-i="${i}"`)}${btn('turunGerakan',ico('down'),'secondary iconbtn',`data-i="${i}"`)}${btn('buangGerakan',ico('trash'),'outline iconbtn',`data-i="${i}"`)}</div>`).join('')}</div>${btn('pilihGerakanRutinitas',`${ico('plus')} Tambah gerakan`,'secondary block')}`:'<p class="muted">Setelah membuat rutinitas, pilih “Ubah” untuk mengatur gerakannya.</p>')+`<div class="actions">${btn('tutup','Batal','secondary')}${btn('simpanRutinitas',r?'Simpan perubahan':'Buat rutinitas')}</div>`);return}
+function renderModal(){if(s.modal==='guidedTune'||s.modal==='guidedQueue'){guidedModal();return}if(!s.modal){document.body.classList.remove('modal-open');dialog.innerHTML='';return}const m=s.modal;if(m==='filterProgres'){ForgeFitProgressUI.filterModal({s,modal,btn,esc,ico});return}if(['profil','catatBB','detailBB','hapusBB'].includes(m)){ForgeFitProgressUI.renderModal({s,modal,f,select,btn,esc});return}if(m==='kardioDetail'){ForgeFitProgressUI.cardioModal({s,modal,btn,esc});return}if(m==='rutinitasBaru'||m==='rutinitasEdit'){const r=m==='rutinitasEdit'?s.routines.find(x=>x.id===s.routineId):null;modal(r?'Ubah rutinitas':'Rutinitas baru',f('routineName','Nama rutinitas',r?.name||'')+select('routineCat','Kategori utama',['Dada','Punggung','Kaki','Kardio','Perut'],r?.category||s.editCategory)+f('routineDuration','Perkiraan durasi (menit)',r?.duration||45,'number','min="1" max="300"')+f('routineDetail','Keterangan singkat',r?.detail||'')+(r?`<p class="muted">Gerakan saat ini: ${r.exercises.length}. Urutan gerakan dapat diubah di bawah.</p><div id="editMoves">${r.exercises.map((n,i)=>`<div class="list-row"><b class="grow">${i+1}. ${esc(n)}</b>${btn('naikGerakan',ico('up'),'secondary iconbtn',`data-i="${i}"`)}${btn('turunGerakan',ico('down'),'secondary iconbtn',`data-i="${i}"`)}${btn('buangGerakan',ico('trash'),'outline iconbtn',`data-i="${i}"`)}</div>`).join('')}</div>${btn('pilihGerakanRutinitas',`${ico('plus')} Tambah gerakan`,'secondary block')}`:'<p class="muted">Setelah membuat rutinitas, pilih “Ubah” untuk mengatur gerakannya.</p>')+`<div class="actions">${btn('tutup','Batal','secondary')}${btn('simpanRutinitas',r?'Simpan perubahan':'Buat rutinitas')}</div>`);return}
 if(m==='pilihGerakan'||m==='pilihGerakanRutinitas'){modal('Cari & tambah gerakan',exerciseSearchControls('pilihGerakanSekarang','picker')+btn('buatGerakan',`${ico('plus')} Buat gerakan sendiri`,'outline block'));return}
 if(m==='ubahSesi'){const e=s.active?.exercises[s.exerciseIndex];if(!e){s.modal=null;return}modal('Ubah gerakan',`<p><b>${esc(e.name)}</b></p>${e.type==='cardio'?f('cardioMinutes','Target durasi (menit)',e.minutes,'number','min="1"')+select('cardioIntensity','Intensitas (1 ringan – 10 maksimal)',Array.from({length:10},(_,i)=>String(i+1)),String(e.intensity)):''}<div class="actions">${btn('hapusGerakanSesi',`${ico('trash')} Hapus`,'outline')}${btn('gantiGerakanSesi',`${ico('edit')} Ganti`,'secondary')}</div><div class="actions">${btn('tutup','Batal','secondary')}${btn('simpanGerakanSesi','Simpan')}</div>`);return}
 if(m==='pilihPengganti'){modal('Cari pengganti',exerciseSearchControls('konfirmasiPengganti','picker'));return}
@@ -258,8 +292,14 @@ case 'naikGerakan':case 'turunGerakan':{const r=s.routines.find(x=>x.id===s.rout
 case 'buangGerakan':{const r=s.routines.find(x=>x.id===s.routineId);if(r){r.exercises.splice(idx,1);save();renderModal()}break}
 case 'pilihGerakanRutinitas':s.modal='pilihGerakanRutinitas';renderModal();break;
 case 'tambahGerakan':s.modal='pilihGerakan';renderModal();break;
-case 'pickerCategory':filterExerciseResults('picker',node.dataset.category);break;
-case 'guidedCategory':filterExerciseResults('guided',node.dataset.category);break;
+case 'moreExerciseResults':{
+  const scope=node.dataset.scope;if(scope!=='picker'&&scope!=='guided')break;
+  filterExerciseResults(scope,document.getElementById(scope+'Category')?.value||'Semua',true);break;
+}
+case 'clearExerciseSearch':{
+  const scope=node.dataset.scope;if(scope!=='picker'&&scope!=='guided')break;
+  const input=document.getElementById(scope+'Search');if(input){input.value='';filterExerciseResults(scope,document.getElementById(scope+'Category')?.value||'Semua');input.focus?.({preventScroll:true})}break;
+}
 case 'pilihGerakanSekarang':{const n=node.dataset.name;if(s.modal==='pilihGerakanRutinitas'){const r=s.routines.find(x=>x.id===s.routineId);if(r){r.exercises.push(n);s.modal='rutinitasEdit';renderModal();save();warn('Gerakan ditambahkan')}}else if(s.active){s.active.exercises.push({name:n,type:isCardio(n)?'cardio':'strength',sets:isCardio(n)?[]:[{weight:20,reps:10,done:false}],minutes:10,intensity:5,done:false,seconds:0,running:false,startedAt:0});if(s.active.phase==='complete'){s.active.exerciseIndex=s.active.exercises.length-1;s.active.setIndex=0;s.active.phase='prepare'}dismiss();draw();warn('Gerakan ditambahkan')}break}
 case 'hapusRutinitas':s.modal='hapusRutinitas';renderModal();break;case 'konfirmasiHapusRutinitas':s.routines=s.routines.filter(x=>x.id!==s.routineId);navigate('latihan');warn('Rutinitas dihapus');break;
 case 'centangSet':{const t=s.active?.exercises[ex]?.sets[set];if(t){t.done=!t.done;if(t.done)s.restUntil=Date.now()+s.restDefault*1000;save();draw()}break}
@@ -303,6 +343,9 @@ dialog.addEventListener?.('touchend',e=>{
   filterSwipeStart=null;
 },{passive:true});
 document.addEventListener('change',e=>{const n=e.target;
+if(n.dataset.pickerCategory){filterExerciseResults(n.dataset.pickerCategory,n.value);return}
+if(n.id==='progressExerciseSelect'){s.progressExercise=n.value;draw();return}
+
 if(n.id==='reminderTime'){
   if(/^(?:[01]\d|2[0-3]):[0-5]\d$/.test(n.value)){s.reminderTime=n.value;save();warn('Jam pengingat disimpan')}
   return;

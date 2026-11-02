@@ -35,9 +35,9 @@ test('UI: free workout can add its first exercise',()=>{
 });
 test('UI: current version is visible and opens about modal',()=>{
  const h=harness();
- assert.match(h.html(),/v0\.9\.1/);
+ assert.match(h.html(),/v0\.9\.2/);
  h.click('infoVersi');
- assert.match(h.modal(),/ForgeFit v0\.9\.1-preview/);
+ assert.match(h.modal(),/ForgeFit v0\.9\.2-preview/);
  h.click('tutup');
  assert.equal(h.modal(),'');
 });
@@ -73,9 +73,10 @@ test('UI: searchable exercise choices include core/cardio and category filters',
  h.click('pindah',{page:'latihan'});
  h.click('latihanBebas');h.click('tambahGerakan');
  assert.match(h.modal(),/id="pickerSearch"/);
- assert.match(h.modal(),/data-act="pickerCategory" data-category="Perut"/);
- assert.match(h.modal(),/Cable Crunch/);
- assert.match(h.modal(),/Treadmill HIIT/);
+ assert.match(h.modal(),/<option value="Perut">Perut<\/option>/);
+ assert.match(h.modal(),/Bench Press/);
+ assert.match(h.modal(),/id="pickerMore"/);
+ assert.match(h.modal(),/id="pickerCount"/);
  h.click('pilihGerakanSekarang',{name:'Cable Crunch'});
  assert.equal(h.state().active.exercises[0].name,'Cable Crunch');
 });

@@ -42,7 +42,9 @@
        ${metric("SET SELESAI",fmt(count,0),"riwayat","Hanya set yang selesai")}
        ${metric("TOTAL VOLUME",show(volume,"kg"),"infoGrafik","Beban × repetisi")}
        </div>${section("Performa gerakan")}
-       ${names.length?`<div class="chips exercise-picks">${names.map(n=>`<button class="chip ${chosen===n?'active':''}" data-act="pilihProgresGerakan" data-name="${esc(n)}">${esc(n)}</button>`).join("")}</div>`:`<div class="hint">Belum ada set selesai pada rentang ini. Selesaikan satu latihan beban dulu.</div>`}
+       ${names.length?`<div class="progress-exercise-select"><label for="progressExerciseSelect">Pilih gerakan</label>
+         <select id="progressExerciseSelect" aria-label="Pilih gerakan untuk grafik">${names.map(n=>`<option value="${esc(n)}" ${chosen===n?'selected':''}>${esc(n)}</option>`).join("")}</select>
+         <span class="progress-exercise-count">${names.length} gerakan tercatat</span></div>`:`<div class="hint">Belum ada set selesai pada rentang ini. Selesaikan satu latihan beban dulu.</div>`}
        <div class="card progress-chart-card"><button class="card-action" data-act="infoGrafik">
          <div class="row"><div><span class="eyebrow">BEBAN TERTINGGI PER SESI</span><h2>${esc(chosen||"Belum ada gerakan")}</h2></div>
          <span class="pill">${show(best,"kg")}</span></div>
