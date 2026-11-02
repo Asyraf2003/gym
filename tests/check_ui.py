@@ -20,7 +20,7 @@ import re
 gradle=Path("app/build.gradle.kts").read_text(encoding="utf-8")
 manifest=Path("app/src/main/AndroidManifest.xml").read_text(encoding="utf-8")
 version=re.search(r'versionName\s*=\s*"([^"]+)"',gradle).group(1)
-assert version=="0.9.0-preview", f"Unexpected Gradle version: {version}"
+assert version=="0.9.1-preview", f"Unexpected Gradle version: {version}"
 assert f'content="{version}"' in html, "Splash version does not match native APK version"
 assert f"VERSION {version.split('-')[0]}" in html, "Visible splash version missing"
 assert 'id="splash"' in html and 'id="skipSplash"' in html, "Opening screen missing"
@@ -33,8 +33,8 @@ assert all(k in progress_ui for k in ["draftBagian","draftRentang","resetFilterP
 assert "progress-filter-icon" in css and "filterRise" in css, "Bottom sheet icon/animation missing"
 assert "progressRange:previous.progressRange||'7'" in js, "Default range must be 7 days"
 
-assert 'applicationId = "id.forgefit.preview.v09"' in gradle, "Preview APK must install beside old version"
-assert 'android:label="ForgeFit Preview 0.9"' in manifest, "Launcher label not versioned"
+assert 'applicationId = "id.forgefit.preview.v091"' in gradle, "Preview APK must install beside old version"
+assert 'android:label="ForgeFit Preview 0.9.1"' in manifest, "Launcher label not versioned"
 assert 'android:name="id.forgefit.app.MainActivity"' in manifest, "Activity must use full class name"
 print("Versi APK, opening screen, and preview identity: PASS")
 
@@ -62,3 +62,12 @@ assert "MainActivity.isForeground()" in scheduler, "Rest notifications must be s
 assert "scheduleNextReminder" in scheduler and "restoreAlarms" in boot, "Recurring reminder reboot recovery missing"
 assert "onAlarm" in receiver, "Notification receiver does not dispatch"
 print("Android notification wiring and permissions: PASS")
+
+# Exercise renaming and searchable catalog are required in this preview.
+guided=(p/"guided.js").read_text(encoding="utf-8")
+assert "changeExercise" in guided and "const done=e.sets.filter(x=>x.done)" in guided, "Completed sets must be preserved when renaming"
+assert all(k in js for k in ["guidedName","guidedChooseExercise","exerciseSearchControls","filterExerciseResults","pickerSearch","guidedSearch"]), "Editable exercise name/search missing"
+assert "['Semua','Kardio','Dada','Punggung','Kaki','Perut']" in js, "Core category missing"
+assert "Cable Crunch" in js and "Mountain Climbers" in js and "Treadmill HIIT" in js, "Expanded core/cardio catalog missing"
+assert "exercise-picker-list" in css and "guided-name-editor" in css, "Search and tuning styles missing"
+print("Exercise tuning/search integration: PASS")

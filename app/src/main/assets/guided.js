@@ -95,6 +95,50 @@
     }
     return true;
   }
+  function changeExercise(a,i,name,type){
+    ensure(a);
+    if (!Number.isInteger(i)||i<a.exerciseIndex||i>=a.exercises.length||a.phase==="complete")return false;
+    const e=a.exercises[i],newName=typeof name==="string"?name.trim():"";
+    if(!newName||newName.length>70||!["strength","cardio"].includes(type)||finished(e))return false;
+    const sameType=e.type===type;
+    const active=i===a.exerciseIndex;
+    // Changing logging model on an already running step invalidates its timer/set input.
+    if(active&&a.phase==="working"&&!sameType)return false;
+    if(active&&a.phase==="rest")return false;
+    const hasDone=e.type==="strength"&&e.sets.some(set=>set.done);
+    if(e.name===newName&&sameType)return true;
+    function fresh(from){
+      return type==="strength"?{
+        name:newName,type,sets:from?.length?from.map(x=>({...x,done:false})):
+          [{weight:20,reps:10,done:false},{weight:20,reps:10,done:false},{weight:20,reps:10,done:false}],
+        minutes:10,intensity:5,done:false,seconds:0,running:false,startedAt:0
+      }:{
+        name:newName,type,sets:[],minutes:10,intensity:5,done:false,seconds:0,running:false,startedAt:0
+      };
+    }
+    if(hasDone){
+      // An exercise with completed sets is split. The finished sets keep the original name.
+      // Only uncompleted sets are moved to the renamed entry.
+      const done=e.sets.filter(x=>x.done),pending=e.sets.filter(x=>!x.done);
+      if(!pending.length)return false;
+      if(active&&a.phase==="working"&&!sameType)return false;
+      const newer=fresh(sameType?pending:null);
+      e.sets=done;
+      e.completedAt=e.completedAt||Date.now();
+      a.exercises.splice(i+1,0,newer);
+      if(active){a.exerciseIndex=i+1;a.setIndex=0;a.phase="prepare";}
+      return true;
+    }
+    const replacement=fresh(sameType?e.type==="strength"?e.sets:null:null);
+    if(sameType){
+      // Keep ongoing cardio time if this is purely a name correction.
+      if(type==="cardio"){replacement.minutes=e.minutes;replacement.intensity=e.intensity;replacement.seconds=e.seconds||0;replacement.running=e.running;replacement.startedAt=e.startedAt||0;}
+      else replacement.sets=e.sets;
+    }
+    a.exercises[i]=replacement;
+    if(active){a.setIndex=0;if(!sameType)a.phase="prepare";}
+    return true;
+  }
   function resizeSets(a,i,delta){
     ensure(a);
     if(!Number.isInteger(i)||i<a.exerciseIndex||i>=a.exercises.length)return false;
@@ -103,5 +147,5 @@
     if(delta===-1&&e.sets.length>1&&!e.sets.at(-1).done&&!(i===a.exerciseIndex&&a.setIndex>=e.sets.length-1)){e.sets.pop();return true;}
     return false;
   }
-  return {ensure,current,start,complete,advance,skipRest,finished,count,doneCount,tune,resizeSets,pauseCardio,playCardio};
+  return {ensure,current,start,complete,advance,skipRest,finished,count,doneCount,tune,resizeSets,changeExercise,pauseCardio,playCardio};
 });

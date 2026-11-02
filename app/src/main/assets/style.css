@@ -171,3 +171,19 @@ body.reduced .progress-radio i{transition:none}
 .notification-day:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 .notification-note{font-size:11px;color:var(--muted);line-height:1.6;margin:4px 0 16px}
 @media(max-width:355px){.notification-days{gap:3px}.notification-day{font-size:10px;padding:0}}
+
+/* v0.9.1: tune exercise name and searchable catalog, without editing completed sets. */
+.guided-name-editor{padding:13px 0 6px;margin:8px 0;border-top:1px solid var(--border);border-bottom:1px solid var(--border)}
+.guided-name-editor .field{margin:0 0 12px}
+.guided-name-editor .muted{display:block;font-size:11px;line-height:1.5;margin:9px 0}
+.guided-search-panel{padding:12px 0 5px}
+.exercise-picker{display:flex;flex-direction:column;min-height:0;gap:8px}
+.exercise-picker .field{margin-bottom:1px}
+.exercise-category-picks{display:flex;overflow-x:auto;flex-wrap:nowrap;white-space:nowrap;scrollbar-width:thin;padding:3px 0 9px;max-width:100%;gap:6px}
+.exercise-category-picks .chip{flex:none}
+.exercise-picker-list{max-height:min(42dvh,380px);overflow-y:auto;overscroll-behavior:contain;border:1px solid var(--border);border-radius:15px;margin:0 0 12px}
+.exercise-picker-list .list-row{min-height:56px;padding:10px 12px}
+.exercise-picker-list .list-row small{font-size:10px}
+.exercise-picker-list>.hint{margin:10px}
+.guided-name-editor input:disabled{opacity:.58}
+[hidden]{display:none!important}

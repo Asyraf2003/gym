@@ -81,3 +81,14 @@ Native Jetpack Compose + Room SQLite (default), provider backup privat opsional,
 - Rest timer menggunakan exact alarm hanya ketika izin "Alarms & reminders" tersedia. Jika tidak, fallback inexact `setAndAllowWhileIdle`, sehingga notifikasi bisa terlambat. Reminder memang memakai inexact alarm untuk hemat baterai.
 - Tidak ada internet/background upload; pengaturan native di SharedPreferences dan workout UI di WebView localStorage. Masih preview, belum Room SQLite atau cloud backup.
 - Preview dipasang terpisah sebagai `id.forgefit.preview.v09` untuk menjaga instalasi lama. Data preview sebelumnya tidak bermigrasi otomatis.
+
+## v0.9.1: Edit nama gerakan dan katalog lebih lengkap
+
+- Tuning pada sesi aktif mendukung mengubah nama gerakan secara manual, memilih dari katalog dan mengganti jenis pencatatan set/reps atau durasi cardio.
+- Pencarian gerakan tersedia di Tuning dan modal tambah gerakan, dengan filter kategori. Hasil berubah tanpa merender ulang modal.
+- Kategori Perut/Core dan 50 opsi tambahan untuk Dada, Punggung, Kaki, Perut, Kardio, Bahu, dan Lengan.
+- Default rutinitas baru untuk 3 fokus utama menambahkan opsi core + cardio; rutinitas pengguna yang sudah dimodifikasi tidak ditimpa.
+- Jika sebagian set sudah selesai, rename memisahkan sisa set ke gerakan baru. Catatan set yang selesai tetap menyimpan nama aslinya; gerakan lama menjadi read-only.
+- Pergantian jenis pencatatan pada langkah yang sedang aktif harus menunggu sebelum Start (untuk mencegah kehilangan timer/set).
+- Ini tetap UI preview dengan localStorage, belum SQLite maupun update APK bertanda tangan stabil.
+- APK dipasang terpisah sebagai `id.forgefit.preview.v091` supaya data aplikasi lama tidak berubah.

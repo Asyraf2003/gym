@@ -57,3 +57,59 @@ test('empty free workout can add its first exercise',()=>{
  a.exercises.push({name:'Push Up',type:'strength',sets:[{weight:0,reps:10,done:false}]});
  G.ensure(a);assert.equal(G.start(a,1000),true);
 });
+test('renaming an unstarted exercise preserves its targets and active cursor',()=>{
+ const a=session();
+ assert.equal(G.changeExercise(a,0,'Incline Cable Press','strength'),true);
+ assert.equal(a.exercises[0].name,'Incline Cable Press');
+ assert.equal(a.exercises[0].sets.length,2);
+ assert.equal(a.exercises[0].sets[0].weight,20);
+ assert.equal(a.phase,'prepare');
+ assert.equal(a.exerciseIndex,0);
+});
+test('renaming after some sets creates a new step and locks previously finished sets',()=>{
+ const a=session();G.start(a,1000);G.complete(a,0,2000);
+ assert.equal(a.setIndex,1);
+ assert.equal(G.changeExercise(a,0,'Cable Crunch','strength'),true);
+ assert.equal(a.exercises.length,3);
+ assert.equal(a.exercises[0].name,'Bench Press');
+ assert.equal(a.exercises[0].sets.length,1);
+ assert.equal(a.exercises[0].sets[0].done,true);
+ assert.equal(G.finished(a.exercises[0]),true);
+ assert.equal(a.exercises[1].name,'Cable Crunch');
+ assert.equal(a.exercises[1].sets.length,1);
+ assert.equal(a.exercises[1].sets[0].done,false);
+ assert.equal(a.phase,'prepare');
+ assert.equal(a.exerciseIndex,1);
+ assert.equal(G.changeExercise(a,0,'Overwrite History','strength'),false);
+ G.start(a,3000);G.complete(a,0,4000);
+ assert.equal(a.exercises[0].name,'Bench Press');
+ assert.equal(a.exercises[1].name,'Cable Crunch');
+});
+test('switching strength to cardio is supported before Start but rejected mid-set',()=>{
+ const a=session();
+ assert.equal(G.changeExercise(a,0,'Mountain Climbers','cardio'),true);
+ assert.equal(a.exercises[0].type,'cardio');
+ assert.equal(a.exercises[0].sets.length,0);
+ assert.equal(a.phase,'prepare');
+ G.start(a,1000);
+ assert.equal(G.changeExercise(a,0,'Cable Crunch','strength'),false);
+ assert.equal(a.exercises[0].name,'Mountain Climbers');
+});
+test('working cardio may be renamed without losing its elapsed data',()=>{
+ const a=session();
+ a.exerciseIndex=1;a.setIndex=0;a.phase='prepare';
+ G.start(a,1000);
+ G.pauseCardio(a,6000);
+ assert.equal(a.exercises[1].seconds,5);
+ assert.equal(G.changeExercise(a,1,'Treadmill HIIT','cardio'),true);
+ assert.equal(a.exercises[1].seconds,5);
+ assert.equal(a.exercises[1].name,'Treadmill HIIT');
+});
+test('completed cardio cannot be renamed and rest step is immutable',()=>{
+ const a=session();
+ G.start(a,1000);G.complete(a,90,2000);
+ assert.equal(G.changeExercise(a,0,'Other','strength'),false);
+ const b=session();b.exerciseIndex=1;b.phase='prepare';
+ G.start(b,1000);G.complete(b,0,2000);
+ assert.equal(G.changeExercise(b,1,'Other','cardio'),false);
+});

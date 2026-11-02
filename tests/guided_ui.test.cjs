@@ -35,9 +35,53 @@ test('UI: free workout can add its first exercise',()=>{
 });
 test('UI: current version is visible and opens about modal',()=>{
  const h=harness();
- assert.match(h.html(),/v0\.9\.0/);
+ assert.match(h.html(),/v0\.9\.1/);
  h.click('infoVersi');
- assert.match(h.modal(),/ForgeFit v0\.9\.0-preview/);
+ assert.match(h.modal(),/ForgeFit v0\.9\.1-preview/);
  h.click('tutup');
  assert.equal(h.modal(),'');
+});
+
+test('UI: edit exercise name in Tuning without changing completed records',()=>{
+ const h=harness();h.click('mulai',{id:'r1'});h.click('guidedTune');
+ assert.match(h.modal(),/id="guidedName"/);
+ assert.match(h.modal(),/data-act="guidedToggleSearch"/);
+ assert.match(h.modal(),/id="guidedRecordingType"/);
+ h.setInput('guidedName','Incline Barbell Press');
+ h.setInput('guidedRecordingType','Beban (set / reps)');
+ h.click('guidedSaveTune');
+ assert.equal(h.state().active.exercises[0].name,'Incline Barbell Press');
+ assert.equal(h.state().active.phase,'prepare');
+ h.click('guidedStart');h.click('guidedComplete');h.click('guidedSkip');
+ h.click('guidedTune');
+ h.setInput('guidedName','Cable Crunch');
+ h.setInput('guidedRecordingType','Beban (set / reps)');
+ h.click('guidedSaveTune');
+ const exercises=h.state().active.exercises;
+ assert.equal(exercises[0].name,'Incline Barbell Press');
+ assert.equal(exercises[0].sets.length,1);
+ assert.equal(exercises[0].sets[0].done,true);
+ assert.equal(exercises[1].name,'Cable Crunch');
+ assert.equal(h.state().active.phase,'prepare');
+});
+test('UI: searchable exercise choices include core/cardio and category filters',()=>{
+ const h=harness();
+ h.click('pindah',{page:'latihan'});
+ assert.match(h.html(),/data-act="cariGerakan"/);
+ assert.match(h.html(),/Perut/);
+ h.click('cariGerakan');assert.match(h.html(),/id="search"/);
+ h.click('pindah',{page:'latihan'});
+ h.click('latihanBebas');h.click('tambahGerakan');
+ assert.match(h.modal(),/id="pickerSearch"/);
+ assert.match(h.modal(),/data-act="pickerCategory" data-category="Perut"/);
+ assert.match(h.modal(),/Cable Crunch/);
+ assert.match(h.modal(),/Treadmill HIIT/);
+ h.click('pilihGerakanSekarang',{name:'Cable Crunch'});
+ assert.equal(h.state().active.exercises[0].name,'Cable Crunch');
+});
+test('UI: Tuning search picker offers options without leaving the editor',()=>{
+ const h=harness();h.click('mulai',{id:'r3'});
+ h.click('guidedTune');assert.match(h.modal(),/data-act="guidedToggleSearch"/);
+ assert.match(h.modal(),/data-act="guidedChooseExercise"/);
+ assert.match(h.modal(),/id="guidedSearch"/);
 });
