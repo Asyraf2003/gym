@@ -3,7 +3,7 @@ const base=path.join(__dirname,'../app/src/main/assets');
 function harness(){
  const el=()=>({innerHTML:'',classList:{add(){},remove(){},toggle(){}},offsetWidth:100,style:{},textContent:''});
  const els=new Map(['#app','#nav','#dialog','#toast'].map(x=>[x,el()])),handlers={},data=new Map(),inputs=new Map();
- const document={querySelector:q=>els.get(q)||{...el(),setAttribute(){}},getElementById:id=>inputs.get(id)||null,addEventListener:(k,v)=>handlers[k]=v,body:{classList:{toggle(){}}},documentElement:{classList:{toggle(){}}}};
+ const document={querySelector:q=>els.get(q)||{...el(),setAttribute(){}},getElementById:id=>inputs.get(id)||null,addEventListener:(k,v)=>handlers[k]=v,body:{classList:{add(){},remove(){},toggle(){}}},documentElement:{classList:{toggle(){}}}};
  const window={matchMedia:()=>({matches:true,addEventListener(){}}),scrollTo(){}},localStorage={getItem:k=>data.get(k)||null,setItem:(k,v)=>data.set(k,v),removeItem:k=>data.delete(k)};
  const ctx={window,document,localStorage,console,setInterval(){},setTimeout(){return 1},clearTimeout(){},Date,Math,structuredClone,location:{reload(){}}};
  for(const file of ['guided.js','progress.js','progress-ui.js','notify.js','app.js'])vm.runInNewContext(fs.readFileSync(path.join(base,file),'utf8'),ctx,{filename:file});

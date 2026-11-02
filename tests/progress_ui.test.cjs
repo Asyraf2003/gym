@@ -10,7 +10,7 @@ function harness(){
     querySelector:q=>els.get(q)||{...blank(),setAttribute(){}},
     getElementById:id=>inputs.get(id)||null,
     addEventListener:(k,v)=>handlers[k]=v,
-    body:{classList:{toggle(){}}},documentElement:{classList:{toggle(){}}}
+    body:{classList:{add(){},remove(){},toggle(){}}},documentElement:{classList:{toggle(){}}}
   };
   const window={matchMedia:()=>({matches:true,addEventListener(){}}),scrollTo(){}};
   const storage={getItem:k=>data.get(k)||null,setItem:(k,v)=>data.set(k,v),removeItem:k=>data.delete(k)};

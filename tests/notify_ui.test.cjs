@@ -25,7 +25,7 @@ function harness(permission=true,hasNative=true){
    querySelector:q=>els.get(q)||{...el(),setAttribute(){}},
    getElementById:()=>null,
    addEventListener:(k,fn)=>handlers[k]=fn,
-   body:{classList:{toggle(){}}},documentElement:{classList:{toggle(){}}}
+   body:{classList:{add(){},remove(){},toggle(){}}},documentElement:{classList:{toggle(){}}}
  };
  const window={matchMedia:()=>({matches:true,addEventListener(){}}),scrollTo(){}};
  const ctx={window,document,localStorage:storage,console,Math,Date,Intl,structuredClone,setInterval(){},setTimeout(){return 1},clearTimeout(){},location:{reload(){}}};
