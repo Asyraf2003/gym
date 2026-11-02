@@ -9,6 +9,7 @@ for action in required:
 assert "addEventListener('click',click)" in js, "Penerima klik hilang"
 assert "window.forgeFitBack" in js, "Navigasi kembali hilang"
 assert "guided-dock" in css and "guided-target" in css, "Guided styles missing"
+assert "body.guided #app.enter" in css and "guidedFade" in css, "Fixed guided dock can be displaced by page animation"
 assert "guided.js" in html, "Guided engine script missing"
 assert "body.light" in css, "Tema terang hilang"
 assert 'lang="id"' in html, "Bahasa aplikasi bukan Indonesia"
