@@ -24,8 +24,11 @@
  function progress({s,heading,section,historyCard,esc,btn,ico,duration}){
    const P=ForgeFitProgress,d=days(s),sr=P.strength(s.history,d),cr=P.cardio(s.history,d),weights=P.bodyWeight(s.weightLog,d);
    const allWeights=P.bodyWeight(s.weightLog,Infinity),body=s.profile||P.profile({});
-   const nav=`<div class="chips progress-tabs">${["Beban","Kardio","Tubuh"].map(n=>`<button class="chip ${s.progressFilter===n?'active':''}" data-act="filterProgres" data-name="${n}">${n}</button>`).join("")}</div>`;
-   const periods=`<div class="progress-period"><span>Rentang</span><div class="chips">${[["7","7 hari"],["30","30 hari"],["all","Semua"]].map(([v,n])=>`<button class="chip ${s.progressRange===v?'active':''}" data-act="rentangProgres" data-name="${v}">${n}</button>`).join("")}</div></div>`;
+   const rangeLabel=s.progressRange==="7"?"7 hari":s.progressRange==="30"?"30 hari":"Semua waktu";
+   const subtitle={Beban:"Kekuatan dan volume latihan",Kardio:"Durasi dan intensitas aktual",Tubuh:"Pengukuran dan profil tubuh"}[s.progressFilter];
+   const nav=`<div class="progress-filter-bar"><div class="progress-filter-summary"><strong>${esc(s.progressFilter)} · ${esc(rangeLabel)}</strong><small>${esc(subtitle)}</small></div>
+     <button class="progress-filter-icon" data-act="bukaFilterProgres" aria-label="Buka filter progres, saat ini ${esc(s.progressFilter)}, ${esc(rangeLabel)}" title="Filter progres">
+     <svg class="icon" style="width:23px;height:23px" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M4 17h16"/><circle cx="9" cy="7" r="2" fill="var(--panel)"/><circle cx="15" cy="17" r="2" fill="var(--panel)"/></svg></button></div>`;
    let main="";
    if(s.progressFilter==="Beban"){
      const names=[...new Set(sr.map(x=>x.name))];
@@ -103,7 +106,7 @@
             <strong>${fmt(e.kg)} kg</strong>${ico("right",15)}</button>`;
        }).join(""):`<div class="hint">Belum ada pengukuran BB. Isi lewat Profil atau Catat BB.</div>`}`;
    }
-   return `${heading("Perkembangan","DATA LATIHAN AKTUAL")}${nav}${periods}${main}${historyList(s,section,historyCard)}`;
+   return `${heading("Perkembangan","DATA LATIHAN AKTUAL")}${nav}${main}${historyList(s,section,historyCard)}`;
  }
  function settingsProfile({s,section,esc,ico}){
    const p=s.profile||ForgeFitProgress.profile({});
@@ -144,10 +147,24 @@
    }
  }
  function action(name,node,{s,val,dismiss,draw,renderModal,warn,navigate}){
-   const accepted=["bukaProfil","simpanProfil","catatBB","simpanBB","detailBB","hapusBB","konfirmasiHapusBB","pilihProgresGerakan","rentangProgres","detailKardio"];
+   const accepted=["bukaProfil","simpanProfil","catatBB","simpanBB","detailBB","hapusBB","konfirmasiHapusBB","pilihProgresGerakan","bukaFilterProgres","draftBagian","draftRentang","resetFilterProgres","terapkanFilterProgres","detailKardio"];
    if(!accepted.includes(name))return false;
    const P=ForgeFitProgress;
    switch(name){
+     case "bukaFilterProgres":
+       s.filterDraft=s.progressFilter;s.rangeDraft=s.progressRange;s.modal="filterProgres";renderModal();break;
+     case "draftBagian":
+       if(s.modal==="filterProgres"&&["Beban","Kardio","Tubuh"].includes(node.dataset.name)){s.filterDraft=node.dataset.name;renderModal()}break;
+     case "draftRentang":
+       if(s.modal==="filterProgres"&&["7","30","all"].includes(node.dataset.name)){s.rangeDraft=node.dataset.name;renderModal()}break;
+     case "resetFilterProgres":
+       if(s.modal==="filterProgres"){s.filterDraft="Beban";s.rangeDraft="7";renderModal()}break;
+     case "terapkanFilterProgres":
+       if(s.modal==="filterProgres"){
+         s.progressFilter=["Beban","Kardio","Tubuh"].includes(s.filterDraft)?s.filterDraft:s.progressFilter;
+         s.progressRange=["7","30","all"].includes(s.rangeDraft)?s.rangeDraft:s.progressRange;
+         s.filterDraft=null;s.rangeDraft=null;dismiss();draw();
+       }break;
      case "bukaProfil":s.modal="profil";renderModal();break;
      case "simpanProfil":{
        let weight,height;
@@ -179,11 +196,26 @@
        s.bodyWeightIndex=null;dismiss();draw();warn("Catatan BB dihapus");break;
      }
      case "pilihProgresGerakan":s.progressExercise=node.dataset.name;draw();break;
-     case "rentangProgres":if(["7","30","all"].includes(node.dataset.name)){s.progressRange=node.dataset.name;draw()}break;
      case "detailKardio":s.cardioDetailName=node.dataset.name;s.modal="kardioDetail";renderModal();break;
    }
    return true;
  }
+ function filterModal({s,modal,btn,esc}){
+  const selectedSection=s.filterDraft||s.progressFilter,selectedRange=s.rangeDraft||s.progressRange;
+  const options=(choices,current,action,name)=>`<div class="progress-filter-options" role="radiogroup" aria-label="${name}">${
+    choices.map(([value,label])=>`<button type="button" class="progress-filter-option ${value===current?'active':''}"
+      role="radio" aria-checked="${value===current}" data-act="${action}" data-name="${value}">
+      <span>${esc(label)}</span><span class="progress-radio" aria-hidden="true"><i></i></span></button>`).join("")
+  }</div>`;
+  const content=`<div class="progress-filter-body">
+    <div class="progress-filter-intro"><span>Atur hasil yang ingin ditampilkan</span><button type="button" data-act="resetFilterProgres">Reset</button></div>
+    <div class="progress-filter-group"><h3>Bagian</h3>
+      ${options([["Beban","Beban"],["Kardio","Kardio"],["Tubuh","Tubuh"]],selectedSection,"draftBagian","Bagian progres")}</div>
+    <div class="progress-filter-group"><h3>Rentang waktu</h3>
+      ${options([["7","7 hari terakhir"],["30","30 hari terakhir"],["all","Semua waktu"]],selectedRange,"draftRentang","Rentang progres")}</div></div>`;
+  const buttons=`<div class="progress-filter-footer">${btn("terapkanFilterProgres","Terapkan filter","block")}</div>`;
+  modal("Filter progres",content,buttons,"progress-filter-sheet");
+}
  function cardioModal({s,modal,btn,esc}){
    const n=s.cardioDetailName||"Kardio",rows=ForgeFitProgress.cardio(s.history,days(s)).filter(x=>x.name===n);
    const total=rows.reduce((v,x)=>v+x.durationSeconds,0),minutes=Math.floor(total/60),secs=String(total%60).padStart(2,"0");
@@ -191,5 +223,5 @@
      <div class="profile-measurement">${minutes}:${secs} <small>menit:detik</small></div>
      <p>Waktu dari timer yang tercatat, bukan target rencana.</p>`,btn("riwayat","Buka riwayat","block"));
  }
- return {progress,settingsProfile,renderModal,action,cardioModal};
+ return {progress,settingsProfile,renderModal,action,cardioModal,filterModal};
 });

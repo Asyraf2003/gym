@@ -54,3 +54,13 @@ Native Jetpack Compose + Room SQLite (default), provider backup privat opsional,
 - Penyimpanan masih localStorage per APK preview, tidak dikirim ke server.
 - v0.7 memakai package preview terpisah (id.forgefit.preview.v07) untuk mencegah error debug signing dan menjaga instalasi v0.6.
 - Fitur cloud dan database Room SQLite belum diintegrasikan.
+
+## v0.8: Bottom sheet filter Progress
+
+- Header: versi yang clickable tampil sebagai teks tanpa kotak. Settings icon transparan dengan tap area 44px.
+- Progress: satu ikon filter di kanan, ringkasan filter aktif di kiri, tanpa chip filter inline.
+- Ikon filter memunculkan bottom sheet dari bawah untuk Bagian (Beban/Kardio/Tubuh) dan Rentang (7/30 hari/Semua).
+- Default **Beban + 7 hari**. Pilihan baru aktif setelah Terapkan; Batal, backdrop, Android Back, Escape atau swipe handle ke bawah membuang draft.
+- Reset hanya mengatur draft ke Beban + 7 hari sampai Terapkan. Analytics dan Guided Workout v0.7 dipertahankan.
+- Kedua tema terang/gelap tetap didukung. Ini UI preview localStorage, bukan SQLite native atau GitHub backup.
+- Package preview v0.8 `id.forgefit.preview.v08` terpisah dari v0.7 karena debug signing GitHub runner belum stabil.

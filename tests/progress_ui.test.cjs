@@ -21,6 +21,8 @@ function harness(){
     state:()=>JSON.parse(data.get("forgefit-ui-demo-v3")),
     html:()=>els.get("#app").innerHTML,
     modal:()=>els.get("#dialog").innerHTML,
+    back:()=>window.forgeFitBack(),
+    backdrop:()=>{const node={dataset:{act:"tutupLuar"}};node.closest=()=>node;handlers.click({target:node})},
     storage:data
   };
 }
@@ -29,7 +31,7 @@ test("Progress empty state contains no invented chart, records or profile values
  assert.match(h.html(),/Belum ada data aktual/);
  assert.match(h.html(),/0 set|0/);
  assert.doesNotMatch(h.html(),/Grafik ilustrasi/);
- h.click("filterProgres",{name:"Tubuh"});
+ h.click("bukaFilterProgres");h.click("draftBagian",{name:"Tubuh"});h.click("terapkanFilterProgres");
  assert.match(h.html(),/Belum ada pengukuran BB/);
  assert.match(h.html(),/Belum ada/);
 });
@@ -48,7 +50,7 @@ test("Profile BB/TB/sex/goal stored locally and editable",()=>{
  assert.equal(p.profile.goal,"Meningkatkan stamina");
  assert.equal(p.weightLog.length,1);
  assert.match(h.html(),/72,5 kg/);
- h.click("pindah",{page:"progres"});h.click("filterProgres",{name:"Tubuh"});
+ h.click("pindah",{page:"progres"});h.click("bukaFilterProgres");h.click("draftBagian",{name:"Tubuh"});h.click("terapkanFilterProgres");
  assert.match(h.html(),/72,5 kg/);
  assert.match(h.html(),/Laki-laki/);
  assert.match(h.html(),/Meningkatkan stamina/);
@@ -63,7 +65,7 @@ test("Invalid profile input is rejected and previous data kept",()=>{
  assert.match(h.modal(),/Profil tubuh/);
 });
 test("New measurements appear in body chart and deletion affects body only",()=>{
- const h=harness();h.click("pindah",{page:"progres"});h.click("filterProgres",{name:"Tubuh"});
+ const h=harness();h.click("pindah",{page:"progres"});h.click("bukaFilterProgres");h.click("draftBagian",{name:"Tubuh"});h.click("terapkanFilterProgres");
  h.click("catatBB");h.set("newWeight","75");h.click("simpanBB");
  h.click("catatBB");h.set("newWeight","74.5");h.click("simpanBB");
  assert.equal(h.state().weightLog.length,2);
@@ -89,7 +91,7 @@ test("Strength only displays real completed set after saving history",()=>{
 });
 test("Cardio target does not masquerade as measured duration",()=>{
  const h=harness();h.click("mulai",{id:"r4"});h.click("guidedStart");h.click("guidedComplete");
- h.click("selesai");h.click("konfirmasiSelesai");h.click("filterProgres",{name:"Kardio"});
+ h.click("selesai");h.click("konfirmasiSelesai");h.click("bukaFilterProgres");h.click("draftBagian",{name:"Kardio"});h.click("terapkanFilterProgres");
  assert.match(h.html(),/0:00/);
  assert.match(h.html(),/Belum ada data aktual/);
  assert.doesNotMatch(h.html(),/10:00/);
@@ -98,15 +100,15 @@ test("Cardio target does not masquerade as measured duration",()=>{
 });
 test("Range and exercise tabs are interactive and stored",()=>{
  const h=harness();h.click("pindah",{page:"progres"});
- h.click("rentangProgres",{name:"7"});assert.equal(h.state().progressRange,"7");
- h.click("filterProgres",{name:"Kardio"});assert.equal(h.state().progressFilter,"Kardio");
- h.click("rentangProgres",{name:"all"});assert.equal(h.state().progressRange,"all");
+ h.click("bukaFilterProgres");h.click("draftRentang",{name:"7"});h.click("terapkanFilterProgres");assert.equal(h.state().progressRange,"7");
+ h.click("bukaFilterProgres");h.click("draftBagian",{name:"Kardio"});h.click("terapkanFilterProgres");assert.equal(h.state().progressFilter,"Kardio");
+ h.click("bukaFilterProgres");h.click("draftRentang",{name:"all"});h.click("terapkanFilterProgres");assert.equal(h.state().progressRange,"all");
 });
 
 test("Finishing workout selects relevant progress tab even after viewing Body",()=>{
  const h=harness();
  h.click("pindah",{page:"progres"});
- h.click("filterProgres",{name:"Tubuh"});
+ h.click("bukaFilterProgres");h.click("draftBagian",{name:"Tubuh"});h.click("terapkanFilterProgres");
  h.click("pindah",{page:"beranda"});
  h.click("mulai",{id:"r1"});h.click("guidedStart");h.click("guidedComplete");
  h.click("selesai");h.click("konfirmasiSelesai");
@@ -118,4 +120,40 @@ test("Cardio-only workout opens Cardio progress",()=>{
  h.click("selesai");h.click("konfirmasiSelesai");
  assert.equal(h.state().progressFilter,"Kardio");
  assert.match(h.html(),/DURASI AKTUAL/);
+});
+
+test("Filter icon is the only filter control; default is Beban / 7 hari",()=>{
+ const h=harness();h.click("pindah",{page:"progres"});
+ assert.equal(h.state().progressFilter,"Beban");
+ assert.equal(h.state().progressRange,"7");
+ assert.match(h.html(),/progress-filter-icon/);
+ assert.match(h.html(),/Beban · 7 hari/);
+ assert.doesNotMatch(h.html(),/data-act="filterProgres"/);
+ assert.doesNotMatch(h.html(),/data-act="rentangProgres"/);
+ h.click("bukaFilterProgres");
+ assert.match(h.modal(),/progress-filter-sheet/);
+ assert.match(h.modal(),/Filter progres/);
+ assert.match(h.modal(),/Terapkan filter/);
+});
+test("Filter choices are drafts until applied, canceled drafts are discarded",()=>{
+ const h=harness();h.click("pindah",{page:"progres"});
+ h.click("bukaFilterProgres");h.click("draftBagian",{name:"Kardio"});h.click("draftRentang",{name:"30"});
+ assert.equal(h.state().progressFilter,"Beban");assert.equal(h.state().progressRange,"7");
+ h.click("tutup");assert.equal(h.modal(),"");
+ h.click("bukaFilterProgres");h.click("draftBagian",{name:"Tubuh"});h.click("draftRentang",{name:"all"});
+ h.click("terapkanFilterProgres");
+ assert.equal(h.state().progressFilter,"Tubuh");assert.equal(h.state().progressRange,"all");
+ assert.match(h.html(),/Tubuh · Semua waktu/);
+});
+test("Filter Reset changes draft only; backdrop and Android Back leave active values unchanged",()=>{
+ const h=harness();h.click("pindah",{page:"progres"});
+ h.click("bukaFilterProgres");h.click("draftBagian",{name:"Kardio"});h.click("draftRentang",{name:"30"});h.click("terapkanFilterProgres");
+ assert.equal(h.state().progressFilter,"Kardio");assert.equal(h.state().progressRange,"30");
+ h.click("bukaFilterProgres");h.click("resetFilterProgres");
+ assert.equal(h.state().progressFilter,"Kardio");assert.equal(h.state().progressRange,"30");
+ h.backdrop();assert.equal(h.modal(),"");
+ h.click("bukaFilterProgres");h.click("draftBagian",{name:"Tubuh"});h.back();
+ assert.equal(h.modal(),"");assert.equal(h.state().progressFilter,"Kardio");
+ h.click("bukaFilterProgres");h.click("resetFilterProgres");h.click("terapkanFilterProgres");
+ assert.equal(h.state().progressFilter,"Beban");assert.equal(h.state().progressRange,"7");
 });
