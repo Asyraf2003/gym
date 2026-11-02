@@ -25,7 +25,7 @@
    const P=ForgeFitProgress,d=days(s),sr=P.strength(s.history,d),cr=P.cardio(s.history,d),weights=P.bodyWeight(s.weightLog,d);
    const allWeights=P.bodyWeight(s.weightLog,Infinity),body=s.profile||P.profile({});
    const rangeLabel=s.progressRange==="7"?"7 hari":s.progressRange==="30"?"30 hari":"Semua waktu";
-   const subtitle={Beban:"Kekuatan dan volume latihan",Kardio:"Durasi dan intensitas aktual",Tubuh:"Pengukuran dan profil tubuh"}[s.progressFilter];
+   const subtitle={Beban:"Kekuatan dan konsistensi latihan",Kardio:"Durasi dan intensitas aktual",Tubuh:"Pengukuran dan profil tubuh"}[s.progressFilter];
    const nav=`<div class="progress-filter-bar"><div class="progress-filter-summary"><strong>${esc(s.progressFilter)} · ${esc(rangeLabel)}</strong><small>${esc(subtitle)}</small></div>
      <button class="progress-filter-icon" data-act="bukaFilterProgres" aria-label="Buka filter progres, saat ini ${esc(s.progressFilter)}, ${esc(rangeLabel)}" title="Filter progres">
      <svg class="icon" style="width:23px;height:23px" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M4 17h16"/><circle cx="9" cy="7" r="2" fill="var(--panel)"/><circle cx="15" cy="17" r="2" fill="var(--panel)"/></svg></button></div>`;
@@ -35,12 +35,12 @@
      const chosen=names.includes(s.progressExercise)?s.progressExercise:(sr.at(-1)?.name||"");
      const selected=sr.filter(x=>x.name===chosen);
      const trend=selected.filter(x=>x.maxLoadKg!==null).map(x=>({at:x.at,value:x.maxLoadKg}));
-     const volume=sr.reduce((a,x)=>a+x.volumeKg,0),count=sr.reduce((a,x)=>a+x.sets,0);
+     const sessions=new Set(sr.map(x=>x.id)).size,count=sr.reduce((a,x)=>a+x.sets,0);
      const loads=selected.filter(x=>x.maxLoadKg!==null).map(x=>x.maxLoadKg);
      const best=loads.length?Math.max(...loads):null;
      main=`<div class="progress-metrics">
        ${metric("SET SELESAI",fmt(count,0),"riwayat","Hanya set yang selesai")}
-       ${metric("TOTAL VOLUME",show(volume,"kg"),"infoGrafik","Beban × repetisi")}
+       ${metric("SESI BEBAN",fmt(sessions,0),"riwayat","Sesi dengan set selesai")}
        </div>${section("Performa gerakan")}
        ${names.length?`<div class="progress-exercise-select"><label for="progressExerciseSelect">Pilih gerakan</label>
          <select id="progressExerciseSelect" aria-label="Pilih gerakan untuk grafik">${names.map(n=>`<option value="${esc(n)}" ${chosen===n?'selected':''}>${esc(n)}</option>`).join("")}</select>
@@ -53,7 +53,7 @@
        </button></div>
        ${section("Detail pencatatan")}
        ${selected.length?selected.slice().reverse().slice(0,8).map(x=>`<button class="progress-record" data-act="detailRiwayat" data-id="${esc(x.id)}">
-          <span><b>${esc(date(x.at))}</b><small>${x.sets} set · Volume ${fmt(x.volumeKg)} kg</small></span>
+          <span><b>${esc(date(x.at))}</b><small>${x.sets} set selesai</small></span>
           <strong>${show(x.maxLoadKg,"kg")}</strong>${ico("right",15)}</button>`).join(""):`<div class="hint">Belum ada catatan untuk gerakan ini.</div>`}`;
    }else if(s.progressFilter==="Kardio"){
      const sec=cr.reduce((n,e)=>n+e.durationSeconds,0),unique=new Set(cr.map(x=>x.id)).size;

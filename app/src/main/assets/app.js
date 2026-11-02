@@ -1,6 +1,6 @@
 (()=>{'use strict';
 const $=s=>document.querySelector(s),app=$('#app'),nav=$('#nav'),dialog=$('#dialog'),toast=$('#toast');
-const APP_VERSION=$('meta[name="forgefit-version"]')?.content||'0.9.2-preview';
+const APP_VERSION=$('meta[name="forgefit-version"]')?.content||'0.9.3-preview';
 function closeSplash(){const node=document.getElementById('splash');if(!node||node.classList.contains?.('is-hidden'))return;node.classList.add('is-hidden');setTimeout(()=>node.remove(),450)}
 document.getElementById('skipSplash')?.addEventListener('click',closeSplash);
 
@@ -166,7 +166,7 @@ function guidedModal(){
   const nameControls=`<div class="guided-name-editor">
     ${f('guidedName','Nama gerakan',e.name,'text',`maxlength="70" ${nameLocked?'disabled':''}`)}
     ${select('guidedRecordingType','Jenis pencatatan',['Beban (set / reps)','Kardio (durasi)'],e.type==='cardio'?'Kardio (durasi)':'Beban (set / reps)')}
-    ${btn('guidedToggleSearch',`${ico('search',16)} Pilih dari katalog ${ico('down',15)}`,'outline block',nameLocked?'disabled':'')}
+    ${btn('guidedToggleSearch',`${ico('search',16)} Pilih dari katalog ${ico('down',15)}`,'outline block',nameLocked?'disabled aria-expanded="false"':'aria-expanded="false"')}
     <div id="guidedPicked" class="guided-picked" role="status" hidden></div>
     <div id="guidedSearchPanel" class="guided-search-panel" hidden>
       ${exerciseSearchControls('guidedChooseExercise','guided')}
@@ -199,12 +199,14 @@ function guidedAction(name,node){
     case 'guidedTuneTarget':s.tuneIndex=Number(node.dataset.ex);renderModal();break;
     case 'guidedToggleSearch':{
       const panel=document.getElementById('guidedSearchPanel');
-      if(panel){panel.hidden=!panel.hidden;if(!panel.hidden){
-        const chosen=document.getElementById('guidedCategory')?.value||'Semua';
-        filterExerciseResults('guided',chosen);
-        document.getElementById('guidedSearch')?.focus?.({preventScroll:true});
-        panel.scrollIntoView?.({block:'nearest',behavior:s.animations?'smooth':'instant'});
-      }}
+      if(panel){panel.hidden=!panel.hidden;
+        node.setAttribute?.('aria-expanded',String(!panel.hidden));
+        if(!panel.hidden){
+          const chosen=document.getElementById('guidedCategory')?.value||'Semua';
+          filterExerciseResults('guided',chosen);
+          document.getElementById('guidedSearch')?.focus?.({preventScroll:true});
+        }
+      }
       break;
     }
     case 'guidedChooseExercise':{
@@ -212,9 +214,10 @@ function guidedAction(name,node){
       const input=document.getElementById('guidedName'),type=document.getElementById('guidedRecordingType');
       if(entry&&input){input.value=entry.name;if(type)type.value=entry.type==='cardio'?'Kardio (durasi)':'Beban (set / reps)';
         const panel=document.getElementById('guidedSearchPanel');if(panel)panel.hidden=true;
+        const trigger=document.querySelector('[data-act="guidedToggleSearch"]');
+        trigger?.setAttribute?.('aria-expanded','false');
         const notice=document.getElementById('guidedPicked');
-        if(notice){notice.textContent=`${entry.name} dipilih · ketuk OK untuk menyimpan`;notice.hidden=false}
-        input.scrollIntoView?.({block:'center',behavior:s.animations?'smooth':'instant'});
+        if(notice){notice.textContent=`Dipilih: ${entry.name}. Ketuk OK untuk menerapkan ke latihan.`;notice.hidden=false}
       }
       break;
     }
@@ -269,7 +272,7 @@ if(m==='versi'){modal('Tentang ForgeFit',`<p><b>ForgeFit v${esc(APP_VERSION)}</b
 if(m==='cadangan'){modal('Cadangan GitHub privat',`<p>Fitur ini akan bersifat opsional. Setiap pengguna nantinya dapat menghubungkan repository privat miliknya sendiri untuk cadangan terenkripsi.</p><div class="hint">Tidak ada login, token GitHub, atau unggahan data dalam pratinjau ini. Bawaan aplikasi final tetap SQLite lokal.</div>`,btn('tutup','Mengerti','block'));return}
 if(m==='lokal'){modal('Penyimpanan lokal',`<p>Pratinjau ini memakai penyimpanan browser hanya agar alur UI bisa dicoba. Saat dipindahkan ke Android native, SQLite/Room menjadi penyimpanan utama.</p>`,btn('tutup','Tutup','block'));return}
 if(m==='reset'){modal('Hapus simulasi?',`<p>Semua rutinitas tambahan, catatan, dan perubahan di pratinjau akan dihapus. Tindakan ini tidak mengakses data di luar aplikasi.</p>`,`<div class="actions">${btn('tutup','Batal','secondary')}${btn('konfirmasiReset','Hapus semua','danger')}</div>`);return}
-if(m==='grafik'){const msg=s.progressFilter==='Beban'?'Grafik menampilkan beban paling tinggi dari set selesai untuk setiap sesi gerakan terpilih. Volume merupakan jumlah beban × repetisi.':s.progressFilter==='Kardio'?'Grafik cardio hanya menghitung durasi timer aktual setelah aktivitas selesai, bukan angka target. Jika durasi belum diukur, data tampil kosong.':'Grafik BB berasal dari pengukuran yang lo simpan sendiri. Tidak ada estimasi atau data contoh.';modal('Cara membaca grafik',`<p>${msg}</p><div class="hint">Semua data masih dalam localStorage versi preview. Penghitungan mengikuti data sesi yang benar-benar dicatat.</div>`,btn('tutup','Mengerti','block'));return}
+if(m==='grafik'){const msg=s.progressFilter==='Beban'?'Grafik menampilkan beban tertinggi dari set yang benar-benar selesai, per sesi dan gerakan terpilih. Sesi Beban menghitung sesi yang punya set beban selesai.':s.progressFilter==='Kardio'?'Grafik cardio hanya menghitung durasi timer aktual setelah aktivitas selesai, bukan angka target. Jika durasi belum diukur, data tampil kosong.':'Grafik BB berasal dari pengukuran yang lo simpan sendiri. Tidak ada estimasi atau data contoh.';modal('Cara membaca grafik',`<p>${msg}</p><div class="hint">Semua data masih dalam localStorage versi preview. Penghitungan mengikuti data sesi yang benar-benar dicatat.</div>`,btn('tutup','Mengerti','block'));return}
 if(m==='ringkasan'){const seven=s.history.filter(h=>Date.now()-h.endedAt<7*864e5);modal('Ringkasan latihan',`<div class="card"><div class="big">${seven.length}</div><div class="muted">Sesi selesai dalam 7 hari terakhir</div></div><p>Ketuk “Riwayat” untuk membuka rincian setiap sesi.</p>`,btn('keRiwayat','Buka riwayat','block'));return}
 if(m==='gerakan'){const n=s.search;const e=catalog.find(x=>x.name===n);modal(n,`<p>Kategori: ${esc(e?.cat||'Buatan sendiri')}<br>Jenis pencatatan: ${e?.type==='cardio'?'Durasi dan intensitas':'Set, beban, dan repetisi'}.</p><p>Gerakan ini dapat dipilih saat membuat rutinitas atau ketika sesi sedang berlangsung.</p>`,btn('tutup','Tutup','block'));return}
 if(m==='gerakanBaru'){modal('Gerakan baru',f('moveName','Nama gerakan')+select('moveCat','Kategori',['Dada','Punggung','Kaki','Perut','Kardio','Bahu','Lengan','Inti'],'Dada')+select('moveType','Jenis pencatatan',['Latihan beban','Kardio'],'Latihan beban'),`<div class="actions">${btn('tutup','Batal','secondary')}${btn('simpanGerakan','Tambahkan')}</div>`);return}

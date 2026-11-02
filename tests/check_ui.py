@@ -20,7 +20,7 @@ import re
 gradle=Path("app/build.gradle.kts").read_text(encoding="utf-8")
 manifest=Path("app/src/main/AndroidManifest.xml").read_text(encoding="utf-8")
 version=re.search(r'versionName\s*=\s*"([^"]+)"',gradle).group(1)
-assert version=="0.9.2-preview", f"Unexpected Gradle version: {version}"
+assert version=="0.9.3-preview", f"Unexpected Gradle version: {version}"
 assert f'content="{version}"' in html, "Splash version does not match native APK version"
 assert f"VERSION {version.split('-')[0]}" in html, "Visible splash version missing"
 assert 'id="splash"' in html and 'id="skipSplash"' in html, "Opening screen missing"
@@ -33,8 +33,8 @@ assert all(k in progress_ui for k in ["draftBagian","draftRentang","resetFilterP
 assert "progress-filter-icon" in css and "filterRise" in css, "Bottom sheet icon/animation missing"
 assert "progressRange:previous.progressRange||'7'" in js, "Default range must be 7 days"
 
-assert 'applicationId = "id.forgefit.preview.v092"' in gradle, "Preview APK must install beside old version"
-assert 'android:label="ForgeFit Preview 0.9.2"' in manifest, "Launcher label not versioned"
+assert 'applicationId = "id.forgefit.preview.v093"' in gradle, "Preview APK must install beside old version"
+assert 'android:label="ForgeFit Preview 0.9.3"' in manifest, "Launcher label not versioned"
 assert 'android:name="id.forgefit.app.MainActivity"' in manifest, "Activity must use full class name"
 print("Versi APK, opening screen, and preview identity: PASS")
 
@@ -82,3 +82,9 @@ theme=Path("app/src/main/res/values/styles.xml").read_text(encoding="utf-8")
 assert "android:windowBackground" in theme and "#0B1119" in theme, "Android white window corner not fixed"
 assert "webView.setOverScrollMode" in main, "WebView overscroll still enabled"
 print("Picker responsiveness, progress selector, and Android sheet background: PASS")
+
+progress_ui=(p/"progress-ui.js").read_text(encoding="utf-8")
+assert 'metric("SESI BEBAN"' in progress_ui and 'metric("TOTAL VOLUME"' not in progress_ui, "Strength dashboard must show sessions, not tonnage"
+assert "Volume ${fmt(x.volumeKg)}" not in progress_ui, "Tonnage should not dominate individual exercise rows"
+assert "background:#05090f!important" in css, "Tuning backdrop needs opaque surface behind rounded corners"
+assert "aria-expanded" in js and "guidedToggleSearch" in js, "Picker expand/collapse state missing"

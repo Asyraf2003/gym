@@ -100,3 +100,11 @@ Native Jetpack Compose + Room SQLite (default), provider backup privat opsional,
 - Setelah memilih gerakan dari katalog, nama di form diperbarui dan muncul konfirmasi sebelum tombol OK menyimpan perubahan.
 - Progress Beban menggunakan dropdown nama gerakan agar pilihan aktif selalu terlihat, termasuk untuk banyak gerakan.
 - Data dan pencatatan completed sets tetap mengikuti engine sebelumnya. Preview memakai application ID berbeda agar APK lama tidak tertimpa; data localStorage belum bermigrasi.
+
+## v0.9.3: Picker UX & Progres lebih bermakna
+- Halaman Progress Beban menampilkan **Set selesai** dan **Sesi Beban** (jumlah sesi unik yang memiliki set selesai). Total Volume dan volume tonase per baris tidak lagi menjadi metrik UI utama.
+- Modal Tuning memakai backdrop gelap solid pada Android WebView untuk menutup white bleed pada sudut membulat.
+- Pemilih gerakan mempertahankan dropdown kategori, pencarian langsung per karakter, enam hasil awal, dan tombol tampilkan berikutnya.
+- Saat opsi katalog dipilih, konfirmasi muncul pada form sebelum menyimpan. State expand/collapse diberi aria-expanded dan tidak melakukan render ulang modal.
+- Engine latihan, data completed sets, timer, profil, dan notifikasi dari versi sebelumnya tidak diubah.
+- APK debug preview memakai package id `id.forgefit.preview.v093`, terpisah dari v0.9.2; data dari preview lama tidak otomatis berpindah.

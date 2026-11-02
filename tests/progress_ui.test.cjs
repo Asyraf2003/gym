@@ -88,8 +88,11 @@ test("Strength only displays real completed set after saving history",()=>{
  assert.equal(h.state().history.length,1);
  const page=h.html();
  assert.match(page,/SET SELESAI/);
+ assert.match(page,/SESI BEBAN/);
+ assert.match(page,/Sesi dengan set selesai/);
  assert.match(page,/20 kg/);
- assert.match(page,/200 kg/);
+ assert.doesNotMatch(page,/TOTAL VOLUME/);
+ assert.doesNotMatch(page,/Volume 200/);
  assert.match(page,/progress-svg/);
  assert.doesNotMatch(page,/Grafik ilustrasi/);
 });
@@ -177,4 +180,18 @@ test("Filter selection never re-creates the bottom sheet (no refresh or replayed
  assert.equal(h.state().progressFilter,"Tubuh");
  assert.equal(h.state().progressRange,"7");
  assert.equal(h.modal(),"");
+});
+
+test("Strength summary counts unique completed sessions, not accumulating tons of kilograms",()=>{
+ const h=harness();
+ h.click("mulai",{id:"r1"});
+ h.click("guidedStart");h.click("guidedComplete");h.click("guidedSkip");
+ h.click("guidedComplete");
+ h.click("selesai");h.click("konfirmasiSelesai");
+ const page=h.html();
+ assert.match(page,/SET SELESAI/);
+ assert.match(page,/SESI BEBAN/);
+ assert.match(page,/>1<\/strong>/);
+ assert.doesNotMatch(page,/TOTAL VOLUME/);
+ assert.doesNotMatch(page,/Volume \d/);
 });

@@ -229,3 +229,15 @@ html,body{overscroll-behavior-y:none}
 /* Prevent Android WebView window from flashing through rounded bottom-sheet corners. */
 body.modal-open{overflow:hidden}
 body.modal-open .modal-backdrop{background-color:rgba(5,9,15,.94)}
+
+/* v0.9.3: hide any WebView canvas bleed behind rounded sheet corners.
+   The background is intentionally opaque while editing an exercise. */
+body.modal-open:has(.guided-tune-sheet) .modal-backdrop{background:#05090f!important}
+body.modal-open:has(.guided-tune-sheet) .sheet{border:0;box-shadow:0 -12px 26px rgba(0,0,0,.16)}
+.guided-tune-sheet .exercise-picker-list{border-radius:14px;overflow:hidden}
+.guided-tune-sheet .exercise-result{transition:background-color .12s ease;min-height:58px}
+.guided-tune-sheet .exercise-result:active{background:var(--surface)}
+.guided-tune-sheet .exercise-search-box{min-height:51px}
+.guided-tune-sheet .exercise-search-box input{font-size:16px}
+.guided-tune-sheet .exercise-picker-count{min-width:64px;text-align:right}
+.guided-tune-sheet .exercise-picker-toolbar{margin-top:1px}
