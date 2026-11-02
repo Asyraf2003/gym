@@ -44,3 +44,13 @@ Native Jetpack Compose + Room SQLite (default), provider backup privat opsional,
 - Package ID preview terpisah: id.forgefit.preview, sehingga bisa dipasang tanpa menghapus preview v0.3 lama (id.forgefit.app).
 - Data simulasi v0.3 **tidak otomatis pindah** ke preview v0.6. Jangan uninstall aplikasi lama jika datanya masih dibutuhkan.
 - Debug APK runner CI tidak memakai signing key permanen. Update-in-place untuk preview berikutnya belum dijamin; release signing harus menggunakan key stabil secara aman nanti.
+
+## v0.7: Progres aktual & Profil Tubuh (UI preview)
+- Progress: tab Beban, Kardio, Tubuh, dan filter 7/30 hari/semua.
+- Grafik hanya dari data yang benar-benar tercatat. Belum ada data berarti empty state, bukan grafik ilustrasi.
+- Beban: completed sets, volume per exercise, puncak beban per session.
+- Cardio: durasi aktual (timer) dan intensitas, bukan durasi target.
+- Profil opsional: BB, TB, jenis kelamin, target latihan, serta catatan BB berkala.
+- Penyimpanan masih localStorage per APK preview, tidak dikirim ke server.
+- v0.7 memakai package preview terpisah (id.forgefit.preview.v07) untuk mencegah error debug signing dan menjaga instalasi v0.6.
+- Fitur cloud dan database Room SQLite belum diintegrasikan.

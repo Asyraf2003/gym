@@ -63,3 +63,62 @@ body.reduced .splash-emblem,body.reduced .splash-progress span{animation:none!im
 /* Keep the guided fixed action dock on-screen during page-entry animation. */
 @keyframes guidedFade{from{opacity:.55}to{opacity:1}}
 body.guided #app.enter{animation:guidedFade .2s ease-out}
+
+
+/* v0.7: workout analytics and private body profile */
+.progress-tabs{margin-top:6px;margin-bottom:13px}
+.progress-period{display:flex;align-items:center;justify-content:space-between;gap:8px;margin:3px 0 20px}
+.progress-period>span{font-size:11px;font-weight:800;color:var(--muted)}
+.progress-period .chips{margin:0;flex:none}
+.progress-period .chip{padding:8px 11px;font-size:10px}
+.progress-metrics{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:0 0 13px}
+.progress-metric{display:flex;flex-direction:column;align-items:flex-start;text-align:left;gap:8px;
+ background:var(--panel);border:1px solid var(--border);border-radius:19px;padding:17px 14px;
+ min-height:125px;width:100%;transition:transform .17s,border-color .17s}
+.progress-metric:active{transform:scale(.985)}
+.progress-metric:hover,.progress-record:hover,.profile-settings-card:hover{border-color:var(--accent)}
+.progress-metric strong{font-size:23px;font-weight:900;line-height:1.12;letter-spacing:-.65px;word-break:break-word}
+.progress-metric small{color:var(--muted);font-size:10px;line-height:1.45}
+.exercise-picks{margin:12px 0}
+.progress-chart-card{padding:17px;margin:7px 0 16px}
+.progress-chart-card h2{font-size:16px;margin:6px 0 0;letter-spacing:-.3px}
+.progress-chart-card .row{align-items:flex-start}
+.progress-chart-card .muted{display:block;margin-top:4px}
+.progress-chart-card .pill{font-size:10px;max-width:40%;white-space:normal;text-align:right}
+.progress-svg{display:block;width:100%;height:165px;margin:15px 0 10px;overflow:visible}
+.progress-svg .grid{fill:none;stroke:var(--border);stroke-width:1}
+.progress-svg .line{fill:none;stroke:var(--accent);stroke-linejoin:round;stroke-linecap:round;stroke-width:3}
+.progress-svg .plot-dot{stroke:var(--panel);stroke-width:2;fill:var(--accent)}
+.progress-svg text{fill:var(--muted);font-size:9px}
+.progress-empty-chart{min-height:155px;display:flex;flex-direction:column;align-items:center;justify-content:center;color:var(--muted);gap:6px}
+.progress-empty-chart span{font-size:39px;color:var(--muted);line-height:1}
+.progress-empty-chart p{margin:0;font-size:11px;max-width:240px;text-align:center;line-height:1.5}
+.progress-record{display:flex;align-items:center;gap:10px;text-align:left;background:var(--panel);
+ border:1px solid var(--border);border-radius:15px;width:100%;padding:13px 14px;margin-bottom:8px;
+ min-height:65px;transition:transform .16s,border-color .16s}
+.progress-record:active{transform:scale(.985)}
+.progress-record span{flex:1;min-width:0}
+.progress-record b{display:block;font-size:12px}
+.progress-record small{color:var(--muted);font-size:10px;line-height:1.55;display:block;margin-top:5px}
+.progress-record strong{font-size:13px;font-weight:850;white-space:nowrap}
+.progress-record>.icon{color:var(--muted)}
+.progress-body-actions{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:13px 0 18px}
+.profile-summary{padding:18px;margin-top:12px}
+.profile-summary .eyebrow{margin-bottom:9px}
+.profile-pairs{display:flex;justify-content:space-between;align-items:flex-start;gap:14px;padding:12px 0;border-bottom:1px solid var(--border);font-size:11px}
+.profile-pairs span{color:var(--muted)}
+.profile-pairs b{text-align:right;font-size:11px;max-width:62%;line-height:1.55}
+.profile-pairs:last-of-type{border:0}
+.profile-summary .muted{padding-top:5px}
+.profile-settings-card{display:block;width:100%;text-align:left;color:var(--ink);cursor:pointer;transition:border-color .15s,transform .15s}
+.profile-settings-card:active{transform:scale(.985)}
+.profile-settings-card h2{font-size:16px;line-height:1.2;margin:0}
+.profile-settings-card p{font-size:11px;color:var(--muted);line-height:1.55;margin:6px 0 0}
+.profile-settings-card .row>.icon{color:var(--muted)}
+.profile-avatar{background:var(--surface);height:48px;width:48px;flex:none;border-radius:15px;display:grid;place-items:center;color:var(--accent)}
+.profile-summary-chips{display:flex;flex-wrap:wrap;gap:7px;margin:16px 0 13px}
+.profile-summary-chips span{font-size:10px;background:var(--surface);border:1px solid var(--border);padding:8px 11px;border-radius:99px}
+.profile-settings-card>small{font-size:10px;color:var(--muted)}
+.profile-measurement{font-size:32px;font-weight:900;color:var(--accent);margin:10px 0 3px}
+.profile-measurement small{font-size:12px;color:var(--muted)}
+@media(max-width:365px){.progress-metric strong{font-size:20px}.progress-metric{padding:14px 11px}.progress-body-actions .btn{padding:12px 8px}}

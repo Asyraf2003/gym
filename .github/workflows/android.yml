@@ -34,7 +34,9 @@ jobs:
       - name: Test Guided Workout
         run: |
           node --check app/src/main/assets/guided.js
-          node --test tests/guided.test.cjs tests/guided_ui.test.cjs
+          node --check app/src/main/assets/progress.js
+          node --check app/src/main/assets/progress-ui.js
+          node --test tests/guided.test.cjs tests/guided_ui.test.cjs tests/progress.test.cjs tests/progress_ui.test.cjs
       - name: Periksa kelengkapan UI
         run: python3 tests/check_ui.py
       - name: Kompilasi APK
@@ -42,7 +44,7 @@ jobs:
       - name: Unggah APK
         uses: actions/upload-artifact@v4
         with:
-          name: ForgeFit-v0.6-Guided-Preview
+          name: ForgeFit-v0.7-Profile-Progress-Preview
           path: app/build/outputs/apk/debug/app-debug.apk
           if-no-files-found: error
           retention-days: 30
