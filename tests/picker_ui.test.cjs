@@ -55,7 +55,7 @@ test('Guided selection gives visible feedback before saving',()=>{
  h.inputs.set('guidedSearchPanel',panel);h.inputs.set('guidedPicked',notice);
  h.click('guidedChooseExercise',{name:'Reverse Crunch'});
  assert.equal(selected.value,'Reverse Crunch');assert.equal(panel.hidden,true);
- assert.equal(notice.hidden,false);assert.match(notice.textContent,/Reverse Crunch dipilih/);
+ assert.equal(notice.hidden,false);assert.match(notice.textContent,/Dipilih: Reverse Crunch/);
  assert.equal(h.state().active.exercises[0].name,'Bench Press');
  h.click('guidedSaveTune');assert.equal(h.state().active.exercises[0].name,'Reverse Crunch');
 });
