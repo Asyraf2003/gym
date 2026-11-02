@@ -31,6 +31,10 @@ jobs:
           ls "$ANDROID_HOME/build-tools"
       - name: Periksa JavaScript
         run: node --check app/src/main/assets/app.js
+      - name: Test Guided Workout
+        run: |
+          node --check app/src/main/assets/guided.js
+          node --test tests/guided.test.cjs tests/guided_ui.test.cjs
       - name: Periksa kelengkapan UI
         run: python3 tests/check_ui.py
       - name: Kompilasi APK

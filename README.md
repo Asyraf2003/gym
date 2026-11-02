@@ -2,7 +2,7 @@
 
 Pelacak latihan Android untuk kardio, dada, punggung, kaki, dan latihan tambahan.
 
-**Status:** pratinjau UI interaktif v0.3, belum aplikasi produksi.
+**Status:** pratinjau UI interaktif v0.5, belum aplikasi produksi.
 
 ## Instal dari GitHub Actions
 1. Buka tab **Actions** repo ini.
@@ -26,3 +26,12 @@ Aplikasi GymLog sebelumnya disimpan pada branch `archive/gymlog-before-forgefit-
 
 ## Rencana sesudah review
 Native Jetpack Compose + Room SQLite (default), provider backup privat opsional, keystore signing stabil, CI tests Android.
+
+## Guided Workout v0.5
+- Pilih rutinitas → preparation screen dengan tombol Start, tanpa checklist.
+- Setelah Start, hanya satu set/cardio step yang aktif; checklist tunggal berada pada dock bawah.
+- Checklist → rest countdown otomatis → pindah ke set berikutnya tanpa mencentang otomatis.
+- Saat ganti gerakan, perlu Start baru. Set/gerakan selesai readonly dan tidak bisa diedit lewat Tuning.
+- Tuning hanya mengubah set sekarang dan langkah mendatang; OK kembali ke posisi sama.
+- Data masih simulasi localStorage dan tidak ditujukan sebagai logger latihan produksi.
+- Debug signing antar GitHub runner belum stabil. APK baru mungkin perlu uninstall preview lama; ini bukan mekanisme update produksi.
