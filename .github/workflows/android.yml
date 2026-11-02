@@ -36,7 +36,13 @@ jobs:
           node --check app/src/main/assets/guided.js
           node --check app/src/main/assets/progress.js
           node --check app/src/main/assets/progress-ui.js
-          node --test tests/guided.test.cjs tests/guided_ui.test.cjs tests/progress.test.cjs tests/progress_ui.test.cjs
+          node --check app/src/main/assets/notify.js
+          node --test tests/guided.test.cjs tests/guided_ui.test.cjs tests/progress.test.cjs tests/progress_ui.test.cjs tests/notify_ui.test.cjs
+      - name: Test Reminder Scheduler (Java)
+        run: |
+          mkdir -p /tmp/forgefit-notify-test
+          javac -d /tmp/forgefit-notify-test app/src/main/java/id/forgefit/app/ReminderPlanner.java tests/java/id/forgefit/app/ReminderPlannerTest.java
+          java -cp /tmp/forgefit-notify-test id.forgefit.app.ReminderPlannerTest
       - name: Periksa kelengkapan UI
         run: python3 tests/check_ui.py
       - name: Kompilasi APK
@@ -44,7 +50,7 @@ jobs:
       - name: Unggah APK
         uses: actions/upload-artifact@v4
         with:
-          name: ForgeFit-v0.8.1-No-Filter-Refresh
+          name: ForgeFit-v0.9-Android-Notifications
           path: app/build/outputs/apk/debug/app-debug.apk
           if-no-files-found: error
           retention-days: 30

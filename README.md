@@ -70,3 +70,14 @@ Native Jetpack Compose + Room SQLite (default), provider backup privat opsional,
 - Modal tidak di-render ulang, animasi tidak restart, posisi sheet tetap.
 - Pilihan belum diterapkan sampai tombol Terapkan. Cancel/backdrop/swipe tetap membuang draft.
 - Preview APK dipisahkan sebagai `id.forgefit.preview.v081` untuk menjaga data yang tersimpan di APK lama; riwayat tidak berpindah otomatis.
+
+## ForgeFit v0.9: Notifikasi Android
+
+- Meminta izin `POST_NOTIFICATIONS` saat membuka aplikasi pertama kali di Android 13+; Settings juga menyediakan tombol izin dan uji notifikasi.
+- Rest selesai dapat mengirim notifikasi Android walau aplikasi ditutup/minimized; tidak menampilkan notifikasi ganda ketika aplikasi aktif.
+- Rest alarm dibatalkan saat skip, waktu habis, sesi selesai, atau notifikasi rest dinonaktifkan; perubahan +15 detik menjadwalkan ulang.
+- Reminder olahraga dapat diatur jam (default 18:00), hari Senin–Minggu, dan switch aktif/nonaktif di Pengaturan.
+- AlarmManager + BroadcastReceiver menjalankan notifikasi walau WebView tidak berjalan. Jadwal diulang setelah reboot/time zone berubah.
+- Rest timer menggunakan exact alarm hanya ketika izin "Alarms & reminders" tersedia. Jika tidak, fallback inexact `setAndAllowWhileIdle`, sehingga notifikasi bisa terlambat. Reminder memang memakai inexact alarm untuk hemat baterai.
+- Tidak ada internet/background upload; pengaturan native di SharedPreferences dan workout UI di WebView localStorage. Masih preview, belum Room SQLite atau cloud backup.
+- Preview dipasang terpisah sebagai `id.forgefit.preview.v09` untuk menjaga instalasi lama. Data preview sebelumnya tidak bermigrasi otomatis.
