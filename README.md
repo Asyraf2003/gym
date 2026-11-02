@@ -35,3 +35,12 @@ Native Jetpack Compose + Room SQLite (default), provider backup privat opsional,
 - Tuning hanya mengubah set sekarang dan langkah mendatang; OK kembali ke posisi sama.
 - Data masih simulasi localStorage dan tidak ditujukan sebagai logger latihan produksi.
 - Debug signing antar GitHub runner belum stabil. APK baru mungkin perlu uninstall preview lama; ini bukan mekanisme update produksi.
+
+
+## v0.6: Launcher opening & version safety
+- Opening animasi ForgeFit dengan nomor versi dan tombol Lewati.
+- Badge v0.6.0 selalu terlihat pada header, dapat ditekan untuk informasi build.
+- Nama launcher "ForgeFit Preview 0.6".
+- Package ID preview terpisah: id.forgefit.preview, sehingga bisa dipasang tanpa menghapus preview v0.3 lama (id.forgefit.app).
+- Data simulasi v0.3 **tidak otomatis pindah** ke preview v0.6. Jangan uninstall aplikasi lama jika datanya masih dibutuhkan.
+- Debug APK runner CI tidak memakai signing key permanen. Update-in-place untuk preview berikutnya belum dijamin; release signing harus menggunakan key stabil secara aman nanti.

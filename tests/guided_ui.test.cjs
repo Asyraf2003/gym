@@ -33,3 +33,11 @@ test('UI: free workout can add its first exercise',()=>{
  const h=harness();h.click('latihanBebas');h.click('tambahGerakan');h.click('pilihGerakanSekarang',{name:'Bench Press'});
  assert.match(h.html(),/guidedStart/);h.click('guidedStart');assert.equal(h.state().active.phase,'working');
 });
+test('UI: current version is visible and opens about modal',()=>{
+ const h=harness();
+ assert.match(h.html(),/v0\.6\.0/);
+ h.click('infoVersi');
+ assert.match(h.modal(),/ForgeFit v0\.6\.0-preview/);
+ h.click('tutup');
+ assert.equal(h.modal(),'');
+});

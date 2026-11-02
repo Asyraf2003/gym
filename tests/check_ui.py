@@ -13,3 +13,18 @@ assert "guided.js" in html, "Guided engine script missing"
 assert "body.light" in css, "Tema terang hilang"
 assert 'lang="id"' in html, "Bahasa aplikasi bukan Indonesia"
 print("Kelengkapan antarmuka: lulus")
+
+# Version identity and splash are release-critical: protect against the wrong APK.
+import re
+gradle=Path("app/build.gradle.kts").read_text(encoding="utf-8")
+manifest=Path("app/src/main/AndroidManifest.xml").read_text(encoding="utf-8")
+version=re.search(r'versionName\s*=\s*"([^"]+)"',gradle).group(1)
+assert version=="0.6.0-preview", f"Unexpected Gradle version: {version}"
+assert f'content="{version}"' in html, "Splash version does not match native APK version"
+assert f"VERSION {version.split('-')[0]}" in html, "Visible splash version missing"
+assert 'id="splash"' in html and 'id="skipSplash"' in html, "Opening screen missing"
+assert "closeSplash" in js and "infoVersi" in js, "Splash/version UI handlers missing"
+assert 'applicationId = "id.forgefit.preview"' in gradle, "Preview APK must install beside old version"
+assert 'android:label="ForgeFit Preview 0.6"' in manifest, "Launcher label not versioned"
+assert 'android:name="id.forgefit.app.MainActivity"' in manifest, "Activity must use full class name"
+print("Versi APK, opening screen, and preview identity: PASS")
