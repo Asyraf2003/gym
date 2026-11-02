@@ -59,3 +59,7 @@ button.guided-list-item:active{transform:scale(.985)}
 @keyframes opening-progress{from{transform:translateX(-120%)}to{transform:translateX(300%)}}
 body.reduced .splash-emblem,body.reduced .splash-progress span{animation:none!important}
 @media(prefers-reduced-motion:reduce){.splash,.splash-emblem,.splash-progress span{animation:none;transition:none}}
+
+/* Keep the guided fixed action dock on-screen during page-entry animation. */
+@keyframes guidedFade{from{opacity:.55}to{opacity:1}}
+body.guided #app.enter{animation:guidedFade .2s ease-out}
