@@ -102,3 +102,20 @@ test("Range and exercise tabs are interactive and stored",()=>{
  h.click("filterProgres",{name:"Kardio"});assert.equal(h.state().progressFilter,"Kardio");
  h.click("rentangProgres",{name:"all"});assert.equal(h.state().progressRange,"all");
 });
+
+test("Finishing workout selects relevant progress tab even after viewing Body",()=>{
+ const h=harness();
+ h.click("pindah",{page:"progres"});
+ h.click("filterProgres",{name:"Tubuh"});
+ h.click("pindah",{page:"beranda"});
+ h.click("mulai",{id:"r1"});h.click("guidedStart");h.click("guidedComplete");
+ h.click("selesai");h.click("konfirmasiSelesai");
+ assert.equal(h.state().progressFilter,"Beban");
+ assert.match(h.html(),/BEBAN TERTINGGI PER SESI/);
+});
+test("Cardio-only workout opens Cardio progress",()=>{
+ const h=harness();h.click("mulai",{id:"r4"});h.click("guidedStart");h.click("guidedComplete");
+ h.click("selesai");h.click("konfirmasiSelesai");
+ assert.equal(h.state().progressFilter,"Kardio");
+ assert.match(h.html(),/DURASI AKTUAL/);
+});
