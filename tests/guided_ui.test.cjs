@@ -1,11 +1,13 @@
 const test=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs'),vm=require('node:vm'),path=require('node:path');
 const base=path.join(__dirname,'../app/src/main/assets');
-function harness(){
+function harness({native=null,legacy=null}={}){
  const el=()=>({innerHTML:'',classList:{add(){},remove(){},toggle(){}},offsetWidth:100,style:{},textContent:''});
  const els=new Map(['#app','#nav','#dialog','#toast'].map(x=>[x,el()])),handlers={},data=new Map(),inputs=new Map();
  const document={querySelector:q=>els.get(q)||{...el(),setAttribute(){}},getElementById:id=>inputs.get(id)||null,addEventListener:(k,v)=>handlers[k]=v,body:{classList:{add(){},remove(){},toggle(){}}},documentElement:{classList:{toggle(){}}}};
  const window={matchMedia:()=>({matches:true,addEventListener(){}}),scrollTo(){}},localStorage={getItem:k=>data.get(k)||null,setItem:(k,v)=>data.set(k,v),removeItem:k=>data.delete(k)};
+ if(legacy!==null)data.set('forgefit-ui-demo-v3',JSON.stringify(legacy));
  const ctx={window,document,localStorage,console,setInterval(){},setTimeout(){return 1},clearTimeout(){},Date,Math,structuredClone,location:{reload(){}}};
+ if(native)ctx.ForgeFitAndroid=native;
  for(const file of ['guided.js','progress.js','progress-ui.js','notify.js','recommend.js','app.js'])vm.runInNewContext(fs.readFileSync(path.join(base,file),'utf8'),ctx,{filename:file});
  return {click:(name,ds={})=>{const node={dataset:{act:name,...ds}};handlers.click({target:{closest:()=>node}})},state:()=>JSON.parse(data.get('forgefit-ui-demo-v3')),html:()=>els.get('#app').innerHTML,modal:()=>els.get('#dialog').innerHTML,setInput:(k,v)=>inputs.set(k,{value:v})};
 }
@@ -86,4 +88,34 @@ test('UI: Tuning search picker offers options without leaving the editor',()=>{
  h.click('guidedTune');assert.match(h.modal(),/data-act="guidedToggleSearch"/);
  assert.match(h.modal(),/data-act="guidedChooseExercise"/);
  assert.match(h.modal(),/id="guidedSearch"/);
+});
+
+test('SQLite migration copies legacy data once and keeps SQLite as the only live source',()=>{
+ let raw='',imports=0,writes=0;
+ const native={
+  loadState:()=>raw,importLegacyState:json=>{imports++;if(!raw)raw=json;return true;},
+  saveState:json=>{writes++;raw=json;return true;},
+  getStatus:()=>JSON.stringify({available:true,permission:false,exact:false,restEnabled:true}),
+  cancelRest(){},updateReminder(){}
+ };
+ harness({native,legacy:{theme:'terang',history:[{id:'legacy',endedAt:Date.now(),exercises:[]}]}});
+ assert.equal(imports,1);
+ assert.ok(writes>0);
+ assert.equal(JSON.parse(raw).theme,'terang');
+ assert.equal(JSON.parse(raw).history[0].id,'legacy');
+});
+test('Existing SQLite row wins over stale legacy browser storage',()=>{
+ let raw=JSON.stringify({theme:'gelap',history:[{id:'native',endedAt:Date.now(),exercises:[]}]}),imports=0;
+ const native={loadState:()=>raw,importLegacyState:()=>{imports++;return true;},saveState:json=>{raw=json;return true;},
+  getStatus:()=>JSON.stringify({available:true,permission:false,exact:false,restEnabled:true}),cancelRest(){},updateReminder(){}};
+ harness({native,legacy:{theme:'terang',history:[]}});
+ assert.equal(imports,0);
+ assert.equal(JSON.parse(raw).theme,'gelap');
+ assert.equal(JSON.parse(raw).history[0].id,'native');
+});
+test('Broken native database never falls back to an obsolete legacy snapshot',()=>{
+ let writes=0;
+ const native={loadState:()=>{throw new Error('corruption');},saveState:()=>{writes++;return true;}};
+ assert.throws(()=>harness({native,legacy:{theme:'terang',history:[]}}),/cannot safely access SQLite state/);
+ assert.equal(writes,0);
 });

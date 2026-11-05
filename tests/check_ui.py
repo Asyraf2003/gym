@@ -60,7 +60,10 @@ assert "setExactAndAllowWhileIdle" in scheduler and "setAndAllowWhileIdle" in sc
 assert "canScheduleExactAlarms" in scheduler, "Exact permission must be checked"
 assert "MainActivity.isForeground()" in scheduler, "Foreground duplicate-notification guard missing"
 assert "ForgeFitDatabase" in main and "saveState" in main and "importLegacyState" in main, "SQLite bridge missing"
+store=(native/"ForgeFitDatabase.java").read_text(encoding="utf-8")
+assert all(x in store for x in ["SQLiteOpenHelper","SCHEMA_VERSION","checksum","beginTransaction","restoreBackup","app_state_archive"]), "Durable SQLite safety checks missing"
 assert "restFeedback" in main and "restFinished" in js, "High visibility foreground alert missing"
+assert "dismissRestAlert" in js and 'id="restAlert"' in html, "Persistent rest alert missing"
 assert "scheduleNextReminder" in scheduler and "restoreAlarms" in boot, "Recurring reminder reboot recovery missing"
 assert "onAlarm" in receiver, "Notification receiver does not dispatch"
 print("Android notification wiring and permissions: PASS")

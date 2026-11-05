@@ -460,7 +460,7 @@ window.forgeFitNativeStateChanged=()=>{
   if(s.page==='pengaturan'&&!s.modal)draw();
 };
 setTimeout(closeSplash,1500);
-setInterval(()=>{if(s.active){const rested=s.active.phase==='rest';ForgeFitGuided.ensure(s.active);if(rested&&s.active.phase!=='rest'){const due=s.active.restUntil;save();draw();restFinished(due)}else updateClocks()}},1000);
+setInterval(()=>{if(s.active){const rested=s.active.phase==='rest',due=s.active.restUntil;ForgeFitGuided.ensure(s.active);if(rested&&s.active.phase!=='rest'){save();draw();restFinished(due)}else updateClocks()}},1000);
 draw();
 syncNativeNotifications();
 })();

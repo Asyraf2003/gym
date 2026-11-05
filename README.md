@@ -8,7 +8,7 @@ Aplikasi latihan pribadi offline untuk Android, dengan rutinitas adaptif, pelaca
 - Data `localStorage` versi sebelumnya diimpor **sekali** saat database SQLite kosong, lalu seluruh perubahan berikutnya ditulis ke SQLite saja. Legacy localStorage sengaja dibiarkan sebagai rollback archive, bukan penyimpanan aktif.
 - **Application ID `id.forgefit.preview.v093` sengaja dipertahankan** demi akses ke data dari instalasi v0.9.3/v0.10.0. Meski identitas lama mengandung kata preview, nama yang tampil di launcher hanya **ForgeFit**. Mengubah package ID sekarang akan memutus akses ke data lama.
 - `versionCode` naik untuk pembaruan. **APK hanya bisa di-upgrade tanpa uninstall bila ditandatangani dengan sertifikat yang sama.** Debug signing GitHub Actions bersifat sementara, bukan mekanisme distribusi production. Jangan uninstall aplikasi berisi data tanpa backup.
-- Menu Pengaturan menyediakan ekspor JSON melalui Android Storage Access Framework. Cadangan itu tidak diunggah otomatis dan belum memiliki fitur restore dari dalam aplikasi.
+- Menu Pengaturan menyediakan ekspor JSON melalui Android Storage Access Framework. Cadangan itu tidak diunggah otomatis. Pemulihan dari file JSON memerlukan konfirmasi, memverifikasi format dan schema, lalu mengarsipkan state lama di tabel internal sebelum menggantinya.
 - Upgrade schema di masa depan wajib non-destructive. Migrasi yang belum didukung harus gagal tanpa DROP tabel.
 
 ## Notifikasi
@@ -22,4 +22,5 @@ Aplikasi latihan pribadi offline untuk Android, dengan rutinitas adaptif, pelaca
 - UI WebView offline: `app/src/main/assets/`.
 - Storage dan notifikasi native Android: `app/src/main/java/id/forgefit/app/`.
 - GitHub Actions menjalankan test JavaScript, integrasi UI, validasi Android, dan kompilasi APK.
-- **Distribusi production baru dapat dijamin setelah signing key stabil tersedia** di luar repository dan upgrade pada perangkat aktual diuji. Jangan menyimpan keystore/password di Git.
+- Signed release dapat dibuat menggunakan environment variables `FORGEFIT_KEYSTORE_PATH`, `FORGEFIT_KEYSTORE_PASSWORD`, `FORGEFIT_KEY_ALIAS`, dan `FORGEFIT_KEY_PASSWORD`. Key tidak boleh masuk Git.
+- **Distribusi production baru dapat dijamin setelah signing key stabil tersedia** di luar repository dan upgrade pada perangkat aktual diuji.
