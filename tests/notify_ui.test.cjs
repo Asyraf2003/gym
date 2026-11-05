@@ -30,7 +30,7 @@ function harness(permission=true,hasNative=true){
  const window={matchMedia:()=>({matches:true,addEventListener(){}}),scrollTo(){}};
  const ctx={window,document,localStorage:storage,console,Math,Date,Intl,structuredClone,setInterval(){},setTimeout(){return 1},clearTimeout(){},location:{reload(){}}};
  if(hasNative)ctx.ForgeFitAndroid=native;
- for(const name of ['guided.js','progress.js','progress-ui.js','notify.js','app.js'])
+ for(const name of ['guided.js','progress.js','progress-ui.js','notify.js','recommend.js','app.js'])
    vm.runInNewContext(fs.readFileSync(path.join(assets,name),'utf8'),ctx,{filename:name});
  return {
    calls,

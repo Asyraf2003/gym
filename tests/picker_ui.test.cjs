@@ -14,7 +14,7 @@ function harness(){
  const window={matchMedia:()=>({matches:true,addEventListener(){}}),scrollTo(){}};
  const storage={getItem:k=>data.get(k)||null,setItem:(k,v)=>data.set(k,v),removeItem:k=>data.delete(k)};
  const ctx={document,window,localStorage:storage,console,setInterval(){},setTimeout(){return 1},clearTimeout(){},Date,Math,Intl,structuredClone,location:{reload(){}}};
- for(const name of ['guided.js','progress.js','progress-ui.js','notify.js','app.js'])vm.runInNewContext(fs.readFileSync(path.join(base,name),'utf8'),ctx,{filename:name});
+ for(const name of ['guided.js','progress.js','progress-ui.js','notify.js','recommend.js','app.js'])vm.runInNewContext(fs.readFileSync(path.join(base,name),'utf8'),ctx,{filename:name});
  const click=(act,dataset={})=>{const node={dataset:{act,...dataset}};handlers.click({target:{closest:()=>node}});};
  function mockPicker(scope){
   const clear={hidden:true};
