@@ -3,6 +3,17 @@ package id.forgefit.app;
 import android.Manifest;
 import android.app.Activity;
 import android.app.AlarmManager;
+import android.media.AudioManager;
+import android.media.ToneGenerator;
+import android.os.VibrationEffect;
+import android.os.Vibrator;
+import android.content.Context;
+import android.widget.Toast;
+import java.io.OutputStream;
+import java.io.InputStream;
+import java.io.ByteArrayOutputStream;
+import android.app.AlertDialog;
+import java.nio.charset.StandardCharsets;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
@@ -16,11 +27,14 @@ import android.webkit.WebResourceRequest;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 
-/** Offline WebView preview with a narrow, local-only Android notification bridge. */
+/** Offline workout app with a local-only bridge and durable SQLite storage. */
 public final class MainActivity extends Activity {
   private static final int NOTIFICATION_REQUEST = 901;
+  private static final int BACKUP_EXPORT_REQUEST = 902;
+  private static final int BACKUP_IMPORT_REQUEST = 903;
   private static volatile boolean foreground = false;
   private WebView webView;
+  private ForgeFitDatabase database;
   private boolean exactPermissionWasAllowed;
 
   public static boolean isForeground() { return foreground; }
@@ -31,6 +45,7 @@ public final class MainActivity extends Activity {
     window.setStatusBarColor(Color.rgb(11,17,25));
     window.setNavigationBarColor(Color.rgb(11,17,25));
     NotificationScheduler.createChannels(this);
+    database = new ForgeFitDatabase(this);
     exactPermissionWasAllowed = NotificationScheduler.canUseExact(this);
     webView = new WebView(this);
     webView.setBackgroundColor(Color.rgb(11,17,25));
@@ -60,6 +75,76 @@ public final class MainActivity extends Activity {
   private void notifyJs() {
     if (webView != null) webView.evaluateJavascript(
       "window.forgeFitNativeStateChanged && window.forgeFitNativeStateChanged()", null);
+  }
+  private void exportBackup() {
+    Intent intent=new Intent(Intent.ACTION_CREATE_DOCUMENT);
+    intent.addCategory(Intent.CATEGORY_OPENABLE);
+    intent.setType("application/json");
+    intent.putExtra(Intent.EXTRA_TITLE,"forgefit-backup.json");
+    try {startActivityForResult(intent,BACKUP_EXPORT_REQUEST);}
+    catch(Exception error){Toast.makeText(this,"Lokasi backup tidak tersedia",Toast.LENGTH_LONG).show();}
+  }
+  private void requestBackupRestore() {
+    Intent intent=new Intent(Intent.ACTION_OPEN_DOCUMENT);
+    intent.addCategory(Intent.CATEGORY_OPENABLE);
+    intent.setType("application/json");
+    try {startActivityForResult(intent,BACKUP_IMPORT_REQUEST);}
+    catch(Exception failure){Toast.makeText(this,"Tidak dapat membuka backup",Toast.LENGTH_LONG).show();}
+  }
+  private void confirmRestore(Uri uri) {
+    try(InputStream in=getContentResolver().openInputStream(uri);
+        ByteArrayOutputStream buffer=new ByteArrayOutputStream()) {
+      if(in==null)throw new IllegalArgumentException("Tidak bisa membaca file");
+      byte[] chunk=new byte[8192];int bytes;int total=0;
+      while((bytes=in.read(chunk))!=-1) {
+        total+=bytes;
+        if(total>8*1024*1024+4096)throw new IllegalArgumentException("Backup terlalu besar");
+        buffer.write(chunk,0,bytes);
+      }
+      String json=buffer.toString("UTF-8");
+      new AlertDialog.Builder(this)
+        .setTitle("Pulihkan data ForgeFit?")
+        .setMessage("Data yang sedang aktif akan diganti. Versi sebelumnya diarsipkan di SQLite. Pastikan file backup benar.")
+        .setNegativeButton("Batal",null)
+        .setPositiveButton("Pulihkan",(dialog,which)->{
+          try {
+            database.restoreBackup(json);
+            if(webView!=null)webView.reload();
+            Toast.makeText(this,"Data berhasil dipulihkan",Toast.LENGTH_LONG).show();
+          } catch(Exception error) {
+            Toast.makeText(this,"Pemulihan gagal, data lama tetap tersimpan",Toast.LENGTH_LONG).show();
+          }
+        }).show();
+    }catch(Exception error) {
+      Toast.makeText(this,"Backup tidak bisa dibaca",Toast.LENGTH_LONG).show();
+    }
+  }
+  @Override protected void onActivityResult(int request,int result,Intent data) {
+    super.onActivityResult(request,result,data);
+    if(result!=RESULT_OK || data==null || data.getData()==null)return;
+    if(request==BACKUP_IMPORT_REQUEST){confirmRestore(data.getData());return;}
+    if(request!=BACKUP_EXPORT_REQUEST)return;
+    try(OutputStream out=getContentResolver().openOutputStream(data.getData(),"w")) {
+      if(out==null)throw new IllegalStateException("Backup destination missing");
+      out.write(database.exportBackup().getBytes(StandardCharsets.UTF_8));
+      out.flush();
+      Toast.makeText(this,"Backup ForgeFit berhasil disimpan",Toast.LENGTH_LONG).show();
+    }catch(Exception error) {
+      Toast.makeText(this,"Backup gagal. Periksa penyimpanan lalu coba lagi.",Toast.LENGTH_LONG).show();
+    }
+  }
+  private void playRestFeedback() {
+    if(!foreground)return;
+    try {
+      Vibrator v=(Vibrator)getSystemService(Context.VIBRATOR_SERVICE);
+      if(v!=null && v.hasVibrator())v.vibrate(VibrationEffect.createWaveform(new long[]{0,250,120,360},-1));
+    }catch(Exception ignored){}
+    try {
+      ToneGenerator tone=new ToneGenerator(AudioManager.STREAM_NOTIFICATION,85);
+      tone.startTone(ToneGenerator.TONE_PROP_BEEP2,350);
+      if(webView!=null)webView.postDelayed(tone::release,700);
+      else tone.release();
+    }catch(Exception ignored){}
   }
   private void notificationSettings() {
     Intent intent = new Intent(Settings.ACTION_APP_NOTIFICATION_SETTINGS);
@@ -106,6 +191,7 @@ public final class MainActivity extends Activity {
   @Override protected void onDestroy() {
     foreground = false;
     if (webView != null) { webView.destroy(); webView=null; }
+    if (database != null) { database.close(); database=null; }
     super.onDestroy();
   }
   @Override public void onBackPressed() {
@@ -116,6 +202,12 @@ public final class MainActivity extends Activity {
   }
 
   private final class NativeBridge {
+    @JavascriptInterface public String loadState(){return database.loadState();}
+    @JavascriptInterface public boolean saveState(String payload){return database.saveState(payload);}
+    @JavascriptInterface public boolean importLegacyState(String payload){return database.importLegacyState(payload);}
+    @JavascriptInterface public void exportBackup(){runOnUiThread(() -> MainActivity.this.exportBackup());}
+    @JavascriptInterface public void importBackup(){runOnUiThread(() -> requestBackupRestore());}
+    @JavascriptInterface public void restFeedback(){runOnUiThread(() -> playRestFeedback());}
     @JavascriptInterface public String getStatus() {
       return NotificationScheduler.status(MainActivity.this);
     }

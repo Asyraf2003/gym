@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#0b1119">
-<meta name="forgefit-version" content="0.10.0-preview">
+<meta name="forgefit-version" content="1.0.0">
 <meta name="color-scheme" content="dark light">
 <title>ForgeFit</title>
 <link rel="stylesheet" href="style.css">
@@ -14,15 +14,16 @@
   <div class="splash-center">
     <div class="splash-emblem" aria-hidden="true"><svg viewBox="0 0 64 64" width="68" height="68" fill="none" stroke="currentColor" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"><path d="M8 23v18M16 16v32M48 16v32M56 23v18M16 32h32"/></svg></div>
     <h1>ForgeFit</h1>
-    <p class="splash-subtitle">GUIDED WORKOUT PREVIEW</p>
+    <p class="splash-subtitle">LATIHAN PERSONAL</p>
     <div class="splash-progress" aria-hidden="true"><span></span></div>
   </div>
-  <div class="splash-meta"><p class="splash-version">VERSION 0.10.0 · BUILD PREVIEW</p><button id="skipSplash" class="splash-skip" type="button">Lewati opening</button></div>
+  <div class="splash-meta"><p class="splash-version">VERSION 1.0.0 · OFFLINE PERSONAL</p><button id="skipSplash" class="splash-skip" type="button">Lewati opening</button></div>
 </section>
 <main id="app" aria-live="polite"></main>
 <nav id="nav" aria-label="Navigasi utama"></nav>
 <div id="dialog"></div>
-<div id="toast" role="status" aria-live="polite"></div>
+<div id="toast" role="alert" aria-live="assertive"></div>
+<div id="restAlert" role="alertdialog" aria-live="assertive" aria-label="Istirahat selesai"></div>
 <script src="guided.js"></script>
 <script src="progress.js"></script>
 <script src="progress-ui.js"></script>

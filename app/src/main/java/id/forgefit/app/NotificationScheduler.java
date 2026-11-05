@@ -4,6 +4,7 @@ import android.Manifest;
 import android.app.AlarmManager;
 import android.app.Notification;
 import android.app.NotificationChannel;
+import android.graphics.Color;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.Context;
@@ -17,7 +18,7 @@ final class NotificationScheduler {
   static final String ACTION_REST = "id.forgefit.app.REST_DONE";
   static final String ACTION_REMINDER = "id.forgefit.app.WORKOUT_REMINDER";
   static final String EXTRA_DUE = "due";
-  private static final String CHANNEL_REST = "forgefit_rest_v1";
+  private static final String CHANNEL_REST = "forgefit_rest_alert_v2";
   private static final String CHANNEL_REMINDER = "forgefit_reminder_v1";
   private static final int REST_REQUEST = 31, REMINDER_REQUEST = 32;
   private static final int REST_NOTIFICATION = 301, REMINDER_NOTIFICATION = 302, TEST_NOTIFICATION = 303;
@@ -45,7 +46,11 @@ final class NotificationScheduler {
   static void createChannels(Context context) {
     NotificationManager mgr = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
     NotificationChannel rest = new NotificationChannel(CHANNEL_REST, "Istirahat selesai", NotificationManager.IMPORTANCE_HIGH);
-    rest.setDescription("Pengingat saat waktu istirahat antar set selesai");
+    rest.setDescription("Peringatan prioritas tinggi ketika jeda latihan berakhir");
+    rest.enableVibration(true);
+    rest.setVibrationPattern(new long[]{0,300,150,400});
+    rest.enableLights(true);
+    rest.setLightColor(Color.rgb(191,243,101));
     NotificationChannel reminder = new NotificationChannel(CHANNEL_REMINDER, "Jadwal olahraga", NotificationManager.IMPORTANCE_DEFAULT);
     reminder.setDescription("Pengingat olahraga sesuai jam dan hari pilihan");
     mgr.createNotificationChannel(rest);
@@ -139,7 +144,8 @@ final class NotificationScheduler {
       .setContentText(message)
       .setContentIntent(open)
       .setAutoCancel(true)
-      .setCategory(Notification.CATEGORY_REMINDER)
+      .setCategory(Notification.CATEGORY_ALARM)
+      .setPriority(Notification.PRIORITY_HIGH)
       .setVisibility(Notification.VISIBILITY_PRIVATE)
       .build();
   }
@@ -160,8 +166,8 @@ final class NotificationScheduler {
       if (MainActivity.isForeground() || !restEnabled(context) || !canPost(context)) return;
       createChannels(context);
       NotificationManager mgr=(NotificationManager)context.getSystemService(Context.NOTIFICATION_SERVICE);
-      mgr.notify(REST_NOTIFICATION,build(context,CHANNEL_REST,"Istirahat selesai",
-        "Siap lanjut set berikutnya · "+exercise));
+      mgr.notify(REST_NOTIFICATION,build(context,CHANNEL_REST,"ISTIRAHAT SELESAI",
+        "Lanjut ke set berikutnya · "+exercise));
     } else if (ACTION_REMINDER.equals(action)) {
       if(expected<=0 || expected!=p.getLong("reminder_due",0) || !p.getBoolean("reminder_enabled",false))return;
       scheduleNextReminder(context);
