@@ -15,7 +15,7 @@ function harness(){
   const window={matchMedia:()=>({matches:true,addEventListener(){}}),scrollTo(){}};
   const storage={getItem:k=>data.get(k)||null,setItem:(k,v)=>data.set(k,v),removeItem:k=>data.delete(k)};
   const c={document,window,localStorage:storage,console,setInterval(){},setTimeout(){return 1},clearTimeout(){},Date,Math,Intl,structuredClone,location:{reload(){}}};
-  for(const name of ["guided.js","progress.js","progress-ui.js","notify.js","app.js"]){
+  for(const name of ["guided.js","progress.js","progress-ui.js","notify.js","recommend.js","app.js"]){
     vm.runInNewContext(fs.readFileSync(path.join(base,name),"utf8"),c,{filename:name});
   }
   return {
@@ -93,7 +93,8 @@ test("Strength only displays real completed set after saving history",()=>{
  assert.match(page,/20 kg/);
  assert.doesNotMatch(page,/TOTAL VOLUME/);
  assert.doesNotMatch(page,/Volume 200/);
- assert.match(page,/progress-svg/);
+ assert.match(page,/progress-single-chart/);
+ assert.match(page,/1 catatan tercatat/);
  assert.doesNotMatch(page,/Grafik ilustrasi/);
 });
 test("Cardio target does not masquerade as measured duration",()=>{

@@ -108,3 +108,11 @@ Native Jetpack Compose + Room SQLite (default), provider backup privat opsional,
 - Saat opsi katalog dipilih, konfirmasi muncul pada form sebelum menyimpan. State expand/collapse diberi aria-expanded dan tidak melakukan render ulang modal.
 - Engine latihan, data completed sets, timer, profil, dan notifikasi dari versi sebelumnya tidak diubah.
 - APK debug preview memakai package id `id.forgefit.preview.v093`, terpisah dari v0.9.2; data dari preview lama tidak otomatis berpindah.
+
+## v0.10.0 preview
+
+- Rekomendasi adaptif Dada → Punggung → Kaki berdasarkan set selesai, dengan pemulihan opsional.
+- Tuning lebih ringkas: pilih langkah dari dropdown, nama manual, dan katalog terpisah.
+- Splash dan header lebih bersih; versi di Pengaturan; grafik satu catatan menunjukkan nilai dan tanggal.
+- Application ID **tetap `id.forgefit.preview.v093`** agar storage scope tidak berganti. Update-in-place perlu signing key yang sama. Debug signing CI belum stabil; jangan uninstall versi berisi data penting.
+- Masih UI preview localStorage, **belum SQLite**, migrasi data, atau backup otomatis.

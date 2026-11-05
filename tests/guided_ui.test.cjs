@@ -6,7 +6,7 @@ function harness(){
  const document={querySelector:q=>els.get(q)||{...el(),setAttribute(){}},getElementById:id=>inputs.get(id)||null,addEventListener:(k,v)=>handlers[k]=v,body:{classList:{add(){},remove(){},toggle(){}}},documentElement:{classList:{toggle(){}}}};
  const window={matchMedia:()=>({matches:true,addEventListener(){}}),scrollTo(){}},localStorage={getItem:k=>data.get(k)||null,setItem:(k,v)=>data.set(k,v),removeItem:k=>data.delete(k)};
  const ctx={window,document,localStorage,console,setInterval(){},setTimeout(){return 1},clearTimeout(){},Date,Math,structuredClone,location:{reload(){}}};
- for(const file of ['guided.js','progress.js','progress-ui.js','notify.js','app.js'])vm.runInNewContext(fs.readFileSync(path.join(base,file),'utf8'),ctx,{filename:file});
+ for(const file of ['guided.js','progress.js','progress-ui.js','notify.js','recommend.js','app.js'])vm.runInNewContext(fs.readFileSync(path.join(base,file),'utf8'),ctx,{filename:file});
  return {click:(name,ds={})=>{const node={dataset:{act:name,...ds}};handlers.click({target:{closest:()=>node}})},state:()=>JSON.parse(data.get('forgefit-ui-demo-v3')),html:()=>els.get('#app').innerHTML,modal:()=>els.get('#dialog').innerHTML,setInput:(k,v)=>inputs.set(k,{value:v})};
 }
 test('UI: preparation, single-step completion, automatic rest and immutable past',()=>{
@@ -35,9 +35,10 @@ test('UI: free workout can add its first exercise',()=>{
 });
 test('UI: current version is visible and opens about modal',()=>{
  const h=harness();
- assert.match(h.html(),/v0\.9\.3/);
+ h.click("pindah",{page:"pengaturan"});
+ assert.match(h.html(),/v0\.10\.0-preview/);
  h.click('infoVersi');
- assert.match(h.modal(),/ForgeFit v0\.9\.3-preview/);
+ assert.match(h.modal(),/ForgeFit v0\.10\.0-preview/);
  h.click('tutup');
  assert.equal(h.modal(),'');
 });
