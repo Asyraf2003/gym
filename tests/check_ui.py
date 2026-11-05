@@ -20,7 +20,7 @@ import re
 gradle=Path("app/build.gradle.kts").read_text(encoding="utf-8")
 manifest=Path("app/src/main/AndroidManifest.xml").read_text(encoding="utf-8")
 version=re.search(r'versionName\s*=\s*"([^"]+)"',gradle).group(1)
-assert version=="0.9.3-preview", f"Unexpected Gradle version: {version}"
+assert version=="0.10.0-preview", f"Unexpected Gradle version: {version}"
 assert f'content="{version}"' in html, "Splash version does not match native APK version"
 assert f"VERSION {version.split('-')[0]}" in html, "Visible splash version missing"
 assert 'id="splash"' in html and 'id="skipSplash"' in html, "Opening screen missing"
@@ -34,7 +34,7 @@ assert "progress-filter-icon" in css and "filterRise" in css, "Bottom sheet icon
 assert "progressRange:previous.progressRange||'7'" in js, "Default range must be 7 days"
 
 assert 'applicationId = "id.forgefit.preview.v093"' in gradle, "Preview APK must install beside old version"
-assert 'android:label="ForgeFit Preview 0.9.3"' in manifest, "Launcher label not versioned"
+assert 'android:label="ForgeFit Preview 0.10.0"' in manifest, "Launcher label not versioned"
 assert 'android:name="id.forgefit.app.MainActivity"' in manifest, "Activity must use full class name"
 print("Versi APK, opening screen, and preview identity: PASS")
 

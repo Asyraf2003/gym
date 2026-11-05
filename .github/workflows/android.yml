@@ -3,6 +3,8 @@ name: Bangun APK ForgeFit
 on:
   push:
     branches: [main]
+  pull_request:
+    branches: [main]
   workflow_dispatch:
 
 permissions:
@@ -37,7 +39,8 @@ jobs:
           node --check app/src/main/assets/progress.js
           node --check app/src/main/assets/progress-ui.js
           node --check app/src/main/assets/notify.js
-          node --test tests/guided.test.cjs tests/guided_ui.test.cjs tests/progress.test.cjs tests/progress_ui.test.cjs tests/notify_ui.test.cjs tests/picker_ui.test.cjs
+          node --check app/src/main/assets/recommend.js
+          node --test tests/guided.test.cjs tests/guided_ui.test.cjs tests/progress.test.cjs tests/progress_ui.test.cjs tests/notify_ui.test.cjs tests/picker_ui.test.cjs tests/recommend.test.cjs
       - name: Test Reminder Scheduler (Java)
         run: |
           mkdir -p /tmp/forgefit-notify-test
@@ -50,7 +53,7 @@ jobs:
       - name: Unggah APK
         uses: actions/upload-artifact@v4
         with:
-          name: ForgeFit-v0.9.3-UX-Progress-Refined
+          name: ForgeFit-v0.10.0-Adaptive-Preview
           path: app/build/outputs/apk/debug/app-debug.apk
           if-no-files-found: error
           retention-days: 30

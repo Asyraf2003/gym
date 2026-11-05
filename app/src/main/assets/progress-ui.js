@@ -6,6 +6,7 @@
  const show=(n,suffix)=>n===null||!Number.isFinite(n)?"Belum ada":fmt(n)+" "+suffix;
  function plot(points,unit,esc){
    const clean=points.filter(x=>Number.isFinite(x.value)&&Number.isFinite(x.at));
+   if(clean.length===1)return `<div class="progress-single-chart" role="status"><strong>${esc(fmt(clean[0].value)+" "+unit)}</strong><span>${esc(date(clean[0].at))} · 1 catatan tercatat</span></div>`;
    const info=ForgeFitProgress.seriesSvg(clean);
    if(!info)return `<div class="progress-empty-chart"><span aria-hidden="true">◌</span><p>Belum ada data aktual untuk grafik ini.</p></div>`;
    return `<svg viewBox="0 0 340 155" preserveAspectRatio="none" role="img" aria-label="Grafik aktual ${esc(unit)} dari ${clean.length} catatan" class="progress-svg">
