@@ -3,7 +3,7 @@ p=Path("app/src/main/assets")
 js=(p/"app.js").read_text(encoding="utf-8")
 css=(p/"style.css").read_text(encoding="utf-8")
 html=(p/"index.html").read_text(encoding="utf-8")
-required=["guidedStart","guidedComplete","guidedTune","guidedSaveTune","guidedSkip","guidedQueue","detailRutinitas","simpanRutinitas","mulai","centangSet","jedaKardio","konfirmasiSelesai","detailRiwayat","tema","infoCadangan","daftarGerakan","tambahGerakan"]
+required=["guidedStart","guidedComplete","guidedTune","guidedSaveTune","guidedSkip","guidedQueue","detailRutinitas","simpanRutinitas","mulai","centangSet","jedaKardio","konfirmasiSelesai","detailRiwayat","tema","exportBackup","daftarGerakan","tambahGerakan"]
 for action in required:
     assert action in js, f"Aksi hilang: {action}"
 assert "addEventListener('click',click)" in js, "Penerima klik hilang"
@@ -20,7 +20,7 @@ import re
 gradle=Path("app/build.gradle.kts").read_text(encoding="utf-8")
 manifest=Path("app/src/main/AndroidManifest.xml").read_text(encoding="utf-8")
 version=re.search(r'versionName\s*=\s*"([^"]+)"',gradle).group(1)
-assert version=="0.10.0-preview", f"Unexpected Gradle version: {version}"
+assert version=="1.0.0", f"Unexpected Gradle version: {version}"
 assert f'content="{version}"' in html, "Splash version does not match native APK version"
 assert f"VERSION {version.split('-')[0]}" in html, "Visible splash version missing"
 assert 'id="splash"' in html and 'id="skipSplash"' in html, "Opening screen missing"
@@ -33,10 +33,10 @@ assert all(k in progress_ui for k in ["draftBagian","draftRentang","resetFilterP
 assert "progress-filter-icon" in css and "filterRise" in css, "Bottom sheet icon/animation missing"
 assert "progressRange:previous.progressRange||'7'" in js, "Default range must be 7 days"
 
-assert 'applicationId = "id.forgefit.preview.v093"' in gradle, "Preview APK must install beside old version"
-assert 'android:label="ForgeFit Preview 0.10.0"' in manifest, "Launcher label not versioned"
+assert 'applicationId = "id.forgefit.preview.v093"' in gradle, "Changing package ID loses access to installed data"
+assert 'android:label="ForgeFit"' in manifest, "Production launcher label missing"
 assert 'android:name="id.forgefit.app.MainActivity"' in manifest, "Activity must use full class name"
-print("Versi APK, opening screen, and preview identity: PASS")
+print("Versi APK, app identity, and opening screen: PASS")
 
 progress_ui=(p/"progress-ui.js").read_text(encoding="utf-8")
 assert "syncFilterOptions(s)" in progress_ui, "In-place filter selection missing"
@@ -58,7 +58,9 @@ assert all(x in manifest for x in ["NotificationReceiver","SystemEventReceiver",
 assert "addJavascriptInterface" in main and "requestPermissions" in main and "requestExactAlarmAccess" in main, "Android permission bridge missing"
 assert "setExactAndAllowWhileIdle" in scheduler and "setAndAllowWhileIdle" in scheduler, "Exact/fallback timer absent"
 assert "canScheduleExactAlarms" in scheduler, "Exact permission must be checked"
-assert "MainActivity.isForeground()" in scheduler, "Rest notifications must be suppressed in foreground"
+assert "MainActivity.isForeground()" in scheduler, "Foreground duplicate-notification guard missing"
+assert "ForgeFitDatabase" in main and "saveState" in main and "importLegacyState" in main, "SQLite bridge missing"
+assert "restFeedback" in main and "restFinished" in js, "High visibility foreground alert missing"
 assert "scheduleNextReminder" in scheduler and "restoreAlarms" in boot, "Recurring reminder reboot recovery missing"
 assert "onAlarm" in receiver, "Notification receiver does not dispatch"
 print("Android notification wiring and permissions: PASS")
