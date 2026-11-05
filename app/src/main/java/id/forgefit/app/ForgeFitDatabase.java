@@ -30,6 +30,9 @@ final class ForgeFitDatabase extends SQLiteOpenHelper {
   @Override public void onCreate(SQLiteDatabase db) {
     db.execSQL("CREATE TABLE app_state (id INTEGER PRIMARY KEY CHECK(id=1),"+
       "payload TEXT NOT NULL, checksum TEXT NOT NULL, revision INTEGER NOT NULL, updated_at INTEGER NOT NULL)");
+    db.execSQL("CREATE TABLE app_state_archive (id INTEGER PRIMARY KEY AUTOINCREMENT,"+
+      "payload TEXT NOT NULL, checksum TEXT NOT NULL, created_at INTEGER NOT NULL)");
+
   }
   @Override public void onUpgrade(SQLiteDatabase db,int oldV,int newV) {
     // Future versions must add explicit, additive migrations here.
@@ -67,19 +70,40 @@ final class ForgeFitDatabase extends SQLiteOpenHelper {
       return value;
     }
   }
-  synchronized boolean importLegacyState(String value) {return persist(value,true);}
-  synchronized boolean saveState(String value) {return persist(value,false);}
-  private boolean persist(String value,boolean onlyIfEmpty) {
+  synchronized boolean importLegacyState(String value) {return persist(value,true,false);}
+  synchronized boolean saveState(String value) {return persist(value,false,false);}
+  synchronized boolean restoreBackup(String backup) {
+    if(backup==null || backup.getBytes(StandardCharsets.UTF_8).length>MAX_STATE_BYTES+4096)
+      throw new IllegalArgumentException("Backup is too large");
+    try {
+      JSONObject parsed=new JSONObject(backup);
+      if(!"forgefit-backup".equals(parsed.optString("format")) ||
+         parsed.optInt("schemaVersion")!=SCHEMA_VERSION)
+        throw new IllegalArgumentException("Unsupported backup format");
+      String restored=parsed.getJSONObject("data").toString();
+      return persist(restored,false,true);
+    }catch(JSONException e){throw new IllegalArgumentException("Invalid backup",e);}
+  }
+  private boolean persist(String value,boolean onlyIfEmpty,boolean isRestore) {
     validate(value);
     SQLiteDatabase db=getWritableDatabase();
     db.beginTransaction();
     try {
       long version=0L;
-      try(Cursor c=db.rawQuery("SELECT revision FROM app_state WHERE id=1",null)) {
+      try(Cursor c=db.rawQuery("SELECT revision,payload,checksum FROM app_state WHERE id=1",null)) {
         if(c.moveToFirst()) {
-          if(onlyIfEmpty){db.setTransactionSuccessful();return true;}
+          String old=c.getString(1);
+          if(!digest(old).equals(c.getString(2)))throw new IllegalStateException("Existing state checksum mismatch");
+          if(onlyIfEmpty || old.equals(value)){db.setTransactionSuccessful();return true;}
           version=c.getLong(0);
           if(version==Long.MAX_VALUE)throw new IllegalStateException("Revision limit reached");
+          if(isRestore){
+            ContentValues archive=new ContentValues();
+            archive.put("payload",old);
+            archive.put("checksum",c.getString(2));
+            archive.put("created_at",System.currentTimeMillis());
+            if(db.insertOrThrow("app_state_archive",null,archive)<0)throw new IllegalStateException("Archive failed");
+          }
         }
       }
       ContentValues row=new ContentValues();
